@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Global Site Tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-106586544-1"></script>
+		<script>
+		  window.dataLayer = window.dataLayer || [];
+		  function gtag(){dataLayer.push(arguments)};
+		  gtag('js', new Date());
+
+		  gtag('config', 'UA-106586544-1');
+		</script>
+
+		<title>Art Source Map</title>
+
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta name="description" content="Map of specialist video game outsourcing companies" />
+		<meta name="keywords" content="leaflet, outsource, map" />
+		<meta name="author" content="Kalvin Lyle" />
+
+		<!-- favicon -->
+		<link type="text/css" rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
+
+		<!-- Leaflet CSS -->
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"
+			integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ=="
+			crossorigin=""/>
+		<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.0.6/dist/MarkerCluster.css" />
+		<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.0.6/dist/MarkerCluster.Default.css" />
+		<link rel="stylesheet" href="leaflet.groupedlayercontrol/leaflet.groupedlayercontrol.min.css" />
+		<link rel="stylesheet" href="leaflet-search/dist/leaflet-search.src.css" />
+
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" 
+			integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
+			crossorigin="anonymous">
+		<link href="open-iconic/font/css/open-iconic-bootstrap.css" rel="stylesheet">
+
+		<!-- Custom CSS -->
+		<style>
+			body {
+				overflow:hidden;
+			}
+			#map {
+				position: absolute;
+				height: calc(100% - 56px);
+				width: 100%;
+			}
+			#findbox {
+				border: 0px;
+				padding: 0px;
+				margin: 0px;
+				width: 290px;
+				height: 36px;
+			}
+			.leaflet-control-search .search-input {
+				margin: 0px;
+				padding-left: 10px;
+				height: 36px;
+			}
+			.search-tooltip {
+				margin-top: 20px;
+				width: 300px;
+			}
+			.leaflet-control-search .search-button {
+				display: none;
+			}
+			.leaflet-control-search .search-cancel {
+				margin-top: 6px;
+				margin-right: -60px;
+			}
+		</style>
+
+	</head>
+
+	<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+	<body>
+
+	<!-- Nav -->
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<a class="navbar-brand" href="#">Art Source Hub</a>
+
+		<div class="collapse navbar-collapse" id="navbarTogglerDemo03">
+			<div class="mr-auto mt-2 mt-lg-0">
+				<button type="button" class="btn btn-sm btn-outline-light" data-toggle="modal" data-target="#aboutModal">About</button>
+			</div>
+			<div id="findbox"></div>
+<!--
+			<form class="form-inline my-2 my-lg-0">
+				<input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+				<button class="btn btn-success my-2 my-sm-0" type="submit">Search</button>
+			</form>
+-->
+		</div>
+	</nav>
+
+	<!-- Modal:About -->
+	<div class="modal fade" id="aboutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="exampleModalLongTitle">About</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>ArtsourceHub.com is a <strong>video game industry resource</strong>, focused on providing an <strong>easily searchable</strong><strong> database</strong> that allows developers and publishers to <strong>identify external service companies</strong> that they might be interested in working with.</p>
+					<h4>Data Curation</h4>
+					<ul>
+					<li><u>Open Data</u>: All data is open for all to add, edit and update (for now)</li>
+					<li><u>Downloadable</u>: Most information can be downloaded in csv format</li>
+					<!--
+					<li><u>Service Providers</u>: Specifically, service companies with more than 3 employees. Individual freelancers are trimmed from the supplier list simply because that data tends to change more often and is harder to maintain.</li>
+					<li><u>Game Credits</u>: Service lists are pulled from curated game credits rather than company websites. Clients care what you have done on what projects. That information allows them to select supplier that have a higher understanding of the products they are making.</li>
+					<li><u>Hand Validated</u>: Every vendor in the data base has been verified by hand to ensure they are active at the time they are added to the database.</li>
+					-->
+					</ul>
+					<h4>Credits</h4>
+					<p>This map was made possible through the extensive use of a number of open source projects:</p>
+					<ul>
+					<li><u>Leaflet</u>: The map is built with <a href="http://leafletjs.com/">Leafletjs</a> and the <a href="https://github.com/Leaflet/Leaflet.markercluster">Leaflet Marker Cluster</a> add-on.</li>
+					<li><u>Leaflet Users Map</u>: The <a href="https://github.com/bmcbride/leaflet-users-map">Leaflet Users Map</a> by Biran McBride was the starting point for the code.</li>
+					<li><u>ArcGIS</u>: The map layer is provide by <a href="http://www.arcgis.com">ArcGIS</a>.</li>
+					<li><u>Open Street Map</u>: The geoLocation is provided by <a href="http://www.openstreetmap.org">OpenStreetMap.org</a>.</li>
+					<li><u>Bootstrap</u>: The site was built with <a href="http://getbootstrap.com/">Bootstrap</a>.</li>
+					</ul>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal:deleteCompany -->
+	<div class="modal fade" id="deleteCompanyModal" tabindex="-1" role="dialog" aria-labelledby="deleteCompanyModal" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Remove the Studio from the map?</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>Removing a Company from the Map is serios business.</p>
+					<p>Are you sure you want to Delete the Company from the Map?</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" onclick="$('#deleteCompanyModal').modal('hide'); deleteCompany(); return false;" class="btn btn-danger" data-dismiss="modal">Delete!</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal:addCompany -->
+	<div class="modal fade" id="addCompanyModal" tabindex="-1" role="dialog" aria-labelledby="addCompanyModal" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Add a Studio to the map!</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>Click on the Go! button below to get started.</p>
+					<p>Navigate to your desired location and click on the map to drop a marker. Fill in the required information and Submit.</p>
+				</div>
+				<div class="modal-footer">
+			        <button type="button" class="btn btn-primary" onclick="$('#addCompanyModal').modal('hide'); initRegistration(); return false;">Go!</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal:insertSuccessModal -->
+	<div class="modal fade" id="insertSuccessModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Success</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>Thanks for your contribution to the Map!</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Map -->
+	<div class="container-fluid mh-100" id="map"></div>
+
+	<!-- jQuery Scripts -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<!-- <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+		integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+		crossorigin="anonymous"></script> -->
+
+	<!-- Bootstrap Scripts -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" 
+		integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4"
+		crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"	
+		integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1"
+		crossorigin="anonymous"></script>
+
+	<!-- Leaflet Scripts -->
+	<script src="https://unpkg.com/leaflet@1.2.0/dist/leaflet.js"
+		integrity="sha512-lInM/apFSqyy1o6s89K4iQUKg6ppXEgsVxT35HbzUupEVRh2Eu9Wdl4tHj7dZO0s1uvplcYGmt3498TtHq+log=="
+		crossorigin=""></script>
+	<script src="https://unpkg.com/leaflet.markercluster@1.1.0/dist/leaflet.markercluster-src.js"></script>
+	<script src="https://unpkg.com/leaflet.markercluster.layersupport@1.0.5/dist/leaflet.markercluster.layersupport-src.js"></script>
+	<script src="leaflet.groupedlayercontrol/leaflet.groupedlayercontrol.min.js"></script>
+	<script src="leaflet-search/dist/leaflet-search.min.js"></script>
+
+	<!-- Map Script -->
+	<script type="application/javascript">
+
+/*************************/
+//		Map Setup
+/*************************/
+
+		firstLoad = true;
+		markerList = [];
+
+		var world = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+				attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
+				minZoom: 3,
+				maxZoom: 14,
+			}),
+			latlng = L.latLng(-37.82, 175.24);
+
+		//Create Map
+		var map = L.map('map', {layers: [world]});
+
+//TODO ITEM:
+//Grab list of Layer Groups from the database and add them automatically
+//Makes for a more reuseable codebase.
+
+		//Create and Add Layer Groups to Map
+		var markers = L.markerClusterGroup.layerSupport({
+				disableClusteringAtZoom: 20,
+				spiderfyDistanceMultiplier: 1,
+				maxClusterRadius: 25,
+				spiderfyOnMaxZoom: true,
+				showCoverageOnHover: false,
+				zoomToBoundsOnClick: true
+			}),
+			supplier = L.layerGroup(),
+			developer = L.layerGroup(),
+			organization = L.layerGroup(),
+			publisher = L.layerGroup(),
+			vr = L.layerGroup(),
+			mobile = L.layerGroup(),
+			online = L.layerGroup(),
+			selfpub = L.layerGroup(),
+			audio = L.layerGroup(),
+			anim = L.layerGroup(),
+			brand = L.layerGroup(),
+			loc = L.layerGroup(),
+			qa = L.layerGroup(),
+			vfx = L.layerGroup(),
+			ui = L.layerGroup(),
+			design = L.layerGroup(),
+			concept = L.layerGroup(),
+			art = L.layerGroup(),
+			codev = L.layerGroup(),
+			control = L.control.layers(null, null, { collapsed: false }),
+			i, a, title, marker;
+		markers.addTo(map);
+
+		//Create a group to isloate markers whiel editing them
+		markerEdit = new L.LayerGroup();
+		markerEdit.addTo(map);
+
+
+		//Add Groups to the Marker Cluster
+		markers.checkIn([supplier, publisher, organization, developer, selfpub, mobile, vr, online, audio, anim, brand, loc, qa, vfx, ui, design, concept, art, codev]);
+
+		//Add groups to the Map
+		supplier.addTo(map);
+		publisher.addTo(map);
+		organization.addTo(map);
+		developer.addTo(map);
+		selfpub.addTo(map);
+		mobile.addTo(map);
+		vr.addTo(map);
+		online.addTo(map);
+		audio.addTo(map);
+		anim.addTo(map);
+		brand.addTo(map);
+		loc.addTo(map);
+		qa.addTo(map);
+		vfx.addTo(map);
+		ui.addTo(map);
+		design.addTo(map);
+		concept.addTo(map);
+		art.addTo(map);
+		codev.addTo(map);
+
+		//define Layer Groups
+		var groupedOverlays = {
+		  "Suppliers": {
+			"Supplier": supplier,
+			"Audio/Music": audio,
+			"Animation/Video": anim,
+			"Brand/Marketing": brand,
+			"Locatization": loc,
+			"Testing": qa,
+			"VFX/Lighting": vfx,
+			"UI/UX": ui,
+			"Design": design,
+			"Concept": concept,
+			"Env & Character": art,
+			"Co-Development": codev
+		  },
+		  "Developers": {
+			"Developer": developer,
+			"Mobile Devs": mobile,
+			"Virtual Reality": vr,
+			"Online": online,
+			"Self Publishing": selfpub,
+			"Organization": organization
+		  },
+		  "Publisher": {
+			"Publisher": publisher
+		  }
+		};
+
+		//Add the Add Company Button to the UI
+		var addCompany = new L.control({ position: 'topleft' });
+		addCompany.onAdd = function (map) {
+			var div = L.DomUtil.create('div', 'leaflet-control-layers leaflet-control');
+			div.innerHTML = '<a class="leaflet-control" style="margin: 0; width: 30px; height: 30px; background-color: rgba(40,187,69,1.0);" data-toggle="modal" href="#addCompanyModal" title="Add company"><span class="oi oi-map-marker oi-size-lg" style="padding-left: 8px; padding-top:5px; font-size: 18px; color: #ffffff;" title="Add Company" aria-hidden="true"></span></a>';
+			return div;
+		};
+		map.addControl(addCompany);
+
+		//Add search to the map
+		var controlSearch = new L.Control.Search({
+			container:'findbox',		
+			layer: markers,
+			initial: false,
+			collapsed: false,
+			zoom: 10,
+			marker: false
+		});
+
+		map.addControl( controlSearch );
+
+		//Add the Layers Selector to the UI
+		var mapLayers = L.control.groupedLayers(null, groupedOverlays);
+		map.addControl(mapLayers);
+
+		//Get Markers the first time the page is loaded and set the initial view
+		$(document).ready(function() {
+			$.ajaxSetup({cache:false});
+			getMarkers();
+			if (window.location.protocol === 'https:')
+			{
+				map.locate({setView: true, maxZoom: 20});
+				function onLocationError(e) {
+					alert(e.message);
+				}
+				map.on('locationerror', onLocationError);
+			} else {
+				map.setView([35, -35], 1);
+				//var bounds = markers.getBounds();
+				//map.fitBounds(bounds, {maxZoom: 15});
+			}
+		});
+
+/*************************/
+//		Custom Markers
+/*************************/
+
+//TODO ITEM:
+//switch to L.Divicon so the CSS can be swapped to grey out markers
+
+		var greenIcon = L.icon({
+			iconUrl: 'assets/images/marker-icon-green.png',
+			shadowUrl: 'assets/images/marker-shadow.png',
+
+			iconSize:     [25, 41], // size of the icon
+		    shadowSize:   [41, 41], // size of the shadow
+		    iconAnchor:   [12, 41], // point of the icon which will correspond to marker's location
+		    shadowAnchor: [12, 41],  // the same for the shadow
+		    popupAnchor:  [0, -41] // point from which the popup should open relative to the iconAnchor
+		});
+
+		var greyIcon = L.icon({
+			iconUrl: 'assets/images/marker-icon-grey.png',
+			shadowUrl: 'assets/images/marker-shadow.png',
+
+			iconSize:     [25, 41], // size of the icon
+		    shadowSize:   [41, 41], // size of the shadow
+		    iconAnchor:   [12, 41], // point of the icon which will correspond to marker's location
+		    shadowAnchor: [12, 41],  // the same for the shadow
+		    popupAnchor:  [0, -41] // point from which the popup should open relative to the iconAnchor
+		});
+
+		var redIcon = L.icon({
+			iconUrl: 'assets/images/marker-icon-red.png',
+			shadowUrl: 'assets/images/marker-shadow.png',
+
+			iconSize:     [25, 41], // size of the icon
+		    shadowSize:   [41, 41], // size of the shadow
+		    iconAnchor:   [12, 41], // point of the icon which will correspond to marker's location
+		    shadowAnchor: [12, 41],  // the same for the shadow
+		    popupAnchor:  [0, -41] // point from which the popup should open relative to the iconAnchor
+		});
+
+		var yellowIcon = L.icon({
+			iconUrl: 'assets/images/marker-icon-yellow.png',
+			shadowUrl: 'assets/images/marker-shadow.png',
+
+			iconSize:     [25, 41], // size of the icon
+		    shadowSize:   [41, 41], // size of the shadow
+		    iconAnchor:   [12, 41], // point of the icon which will correspond to marker's location
+		    shadowAnchor: [12, 41],  // the same for the shadow
+		    popupAnchor:  [0, -41] // point from which the popup should open relative to the iconAnchor
+		});
+
+/*************************/
+//		Functions
+/*************************/
+
+//TODO ITEM:
+//Read in the Marker Data to an array, then make addPopup, setIcon setGroup etc functions.
+
+		//Get Markers and add them to the map
+		function getMarkers() {
+			$.getJSON("company_get.php", function (data) {
+				for (var i = 0; i < data.length; i++) {
+					var companyId = data[i].id;
+					var companyName = data[i].name;
+					var companyType = data[i].type;
+					var companyTypeName = data[i].type_name;
+					var companyWebsite = data[i].website;
+					var companyAddress = data[i].address.replace(/\&lt;\/br&gt;/ig, '');
+					var companyLat = data[i].lat;
+					var companyLng = data[i].lng;
+					var location = new L.LatLng(companyLat, companyLng);
+					if (companyWebsite.length > 0) {
+						var title = "<div style='font-size: 18px; color: #0078A8;'><a href='"+ companyWebsite +"' target='_blank'>"+ companyName + "</a></div>";
+					} else {
+						var title = "<div style='font-size: 18px; color: #0078A8;'>"+ companyName +"</div>";
+					}
+					var address = "<div style='font-size: 14px;'>"+ companyAddress +"</div>";				
+					var editButton = '</br><form id="inputform" enctype="multipart/form-data">'+
+						'<input style="display: none;" type="text" id="markerId" name="markerId" value="'+ i +'"/>'+
+						'<input style="display: none;" type="text" id="companyId" name="companyId" value="'+ companyId +'"/>'+
+						'<input style="display: none;" type="text" id="companyName" name="companyName" value="'+ companyName +'"/>'+
+						'<input style="display: none;" type="text" id="companyWebsite" name="companyWebsite" value="'+ companyWebsite +'"/>'+
+						'<input style="display: none;" type="text" id="companyAddress" name="companyAddress" value="'+ companyAddress +'"/>'+
+						'<input style="display: none;" type="text" id="companyType" name="companyType" value="'+ companyType +'"/>'+
+						'<input style="display: none;" type="text" id="lat" name="lat" value="'+ companyLat +'" />'+
+						'<input style="display: none;" type="text" id="lng" name="lng" value="'+ companyLng +'" />'+
+						'<div class="row-fluid">'+
+						'<div class="span" style="text-align:center;"><button type="button" class="btn btn-primary" onclick="editCompany('+ i +', '+ companyId +', \''+ companyName.replace(/'/ig, "\\'") +'\', \''+ companyWebsite +'\', \''+ companyAddress +'\', '+ companyType +', '+ companyLat +', '+ companyLng +')">Edit</button></div>'+
+						'</div>'+
+						'</form>';
+					var markerGroup;
+					var markerOptions = {title: companyName};
+					switch(companyTypeName) {
+						case "Developer":
+							markerOptions = {icon: greenIcon, title: companyName};
+							markerGroup = developer;
+							break;
+						case "Publisher":
+							markerOptions = {title: companyName};
+							markerGroup = publisher;
+							break;
+						case "Organization":
+							markerOptions = {title: companyName};
+							markerGroup = organization;
+							break;
+						case "Mobile":
+							markerOptions = {icon: greenIcon, title: companyName};
+							markerGroup = mobile;
+							break;
+						case "Virtual Reality":
+							markerOptions = {icon: greenIcon, title: companyName};
+							markerGroup = vr;
+							break;
+						case "Developer and Publisher":
+							markerOptions = {icon: greenIcon, title: companyName};
+							markerGroup = selfpub;
+							break;
+						case "Online":
+							markerOptions = {icon: greenIcon, title: companyName};
+							markerGroup = online;
+							break;
+						case "Supplier":
+							markerOptions = {icon: redIcon, title: companyName};
+							markerGroup = supplier;
+							break;
+						case "Audio & Music":
+							markerOptions = {icon: redIcon, title: companyName};
+							markerGroup = audio;
+							break;
+						case "Animation & Video":
+							markerOptions = {icon: redIcon, title: companyName};
+							markerGroup = anim;
+							break;
+						case "Brand & Marketing":
+							markerOptions = {icon: redIcon, title: companyName};
+							markerGroup = brand;
+							break;
+						case "Localization & Writing":
+							markerOptions = {icon: redIcon, title: companyName};
+							markerGroup = loc;
+							break;
+						case "QA & Testing":
+							markerOptions = {icon: redIcon, title: companyName};
+							markerGroup = qa;
+							break;
+						case "VFX & Lighting":
+							markerOptions = {icon: redIcon, title: companyName};
+							markerGroup = vfx;
+							break;
+						case "UI & Player Experience":
+							markerOptions = {icon: redIcon, title: companyName};
+							markerGroup = ui;
+							break;
+						case "Game & Level Design":
+							markerOptions = {icon: redIcon, title: companyName};
+							markerGroup = design;
+							break;
+						case "Concept & Illustration":
+							markerOptions = {icon: redIcon, title: companyName};
+							markerGroup = concept;
+							break;
+						case "Environment & Character":
+							markerOptions = {icon: redIcon, title: companyName};
+							markerGroup = art;
+							break;
+						case "Full Service & Co-Developmeny":
+							markerOptions = {icon: redIcon, title: companyName};
+							markerGroup = codev;
+							break;
+					}
+					var marker = new L.Marker(location, markerOptions);
+					marker.bindPopup("<div style='text-align: center; margin-left: auto; margin-right: auto;'>"+ title + address + editButton +"</div>", {maxWidth: '400'});
+//					marker.addTo(markerGroup).on('click', onClick); //sends an onclick event for that marker
+					marker.addTo(markerGroup);
+					markers.addLayer(marker);
+					markerList.push(marker);
+				}
+			}, function() {
+				if (firstLoad == true) {
+					map.locate({setView: true, maxZoom: 4});
+					//map.fitBounds(markers.getBounds());
+					map.zoomSnap;
+					firstLoad = false;
+				};
+			});
+		}
+
+//TODO ITEM:
+//It must be possible to combine initRegistration and initEdit functions into one
+
+		//Start Add Mode
+		function initRegistration() {
+			//marker.on('dragend', setNewMarkerPosition);
+			map.addEventListener('click', addMarker);
+			map.removeControl(addCompany);
+			map.removeControl(mapLayers);
+			markers.eachLayer(function(m){
+				m.options.interactive= false;
+				m.setIcon(greyIcon);
+			});
+			$('#map').css('cursor', 'crosshair');
+			map.options.closePopupOnClick = false;
+			return false;
+		}
+
+		//Start Edit Mode
+		function initEdit(marker) {
+			marker.on('dragend', setNewMarkerPosition);
+			map.addEventListener('click', setNewMarkerPosition);		//Clicking on the map will set newMarker positions
+			map.removeControl(addCompany);
+			map.removeControl(mapLayers);
+			markers.eachLayer(function(m){			//make all other markers non-interactve
+				m.options.interactive= false;
+				m.setIcon(greyIcon);
+			});
+			$('#map').css('cursor', 'crosshair');			//Swap the map cursor to a cross hair
+			map.options.closePopupOnClick = false;
+			return false;
+		}
+
+//TODO ITEM:
+//It must be possible to combine cancelRegistration and cancelEdit functions into one
+
+		function cancelRegistration() {
+			$('#map').css('cursor', '');
+			map.removeEventListener('click', addMarker);
+			map.removeEventListener('click', setNewMarkerPosition);
+			map.addControl(addCompany);
+			map.addControl(mapLayers);
+			markerList = [];
+			markers.clearLayers();
+			markerEdit.clearLayers();
+			getMarkers();
+			markerName = "";
+			markerWebsite = "";
+			markerAddressText = "";
+		}
+
+		//Start Edit Mode
+		function cancelEdit() {
+			$('#map').css('cursor', '');
+			map.options.closePopupOnClick = true;
+			map.removeEventListener('click', setNewMarkerPosition);
+			map.addControl(addCompany);
+			map.addControl(mapLayers);
+			markerList = [];
+			markers.clearLayers();
+			markerEdit.clearLayers();
+			getMarkers();
+			markerName = "";
+			markerWebsite = "";
+			markerAddressText = "";
+		}
+
+		//Global variables to remember the Form data between clicks
+		var markerName = "";
+		var markerWebsite = "";
+		var markerAddressText = "";
+
+		// Reopen popups and update LatLng data
+		function setNewMarkerPosition(e) {
+			if (typeof e.target._latlng !== 'undefined') { var  latlng = e.target._latlng; } else { var latlng = e.latlng; }
+			markerEdit.eachLayer(function(m){
+				m.setLatLng(latlng);
+				m.openPopup();
+			});
+			document.getElementById("website").value = markerWebsite;
+			document.getElementById("name").value = markerName;
+			document.getElementById("addressText").value = markerAddressText;
+			document.getElementById("lat").value = latlng.lat.toFixed(6);
+			document.getElementById("lng").value = latlng.lng.toFixed(6);
+			updateAddress(latlng.lat.toFixed(6), latlng.lng.toFixed(6));
+			map.panTo(latlng);
+		}
+
+		function addressLookup() {
+			var markerId = $("#markerId").val();
+			if (markerAddressText !== "") {
+				var addressURL =  'http://nominatim.openstreetmap.org/search?q='+ markerAddressText +'&format=json&zoom=1&addressdetails=1&accept-language=en';
+				$.ajax({
+					type: "GET",
+					url: addressURL,
+					contentType: "application/json; charset=utf-8",
+					success: function(data) {
+						if (data.length > 0) {
+							var latlng = new L.LatLng(data[0].lat,data[0].lon);
+							map.panTo(latlng);
+							marker = markerEdit.getLayer(markerId);
+							marker.setLatLng(latlng)
+							marker.openPopup();
+							document.getElementById("website").value = markerWebsite;
+							document.getElementById("name").value = markerName;
+							document.getElementById("addressText").value = markerAddressText;
+							document.getElementById("lat").value = data[0].lat;
+							document.getElementById("lng").value = data[0].lon;
+							updateAddress(data[0].lat, data[0].lon);
+						} else {
+							alert('Invalid location');
+						}
+					},
+					dataType: 'json'
+				});
+			} else {
+				alert('Invalid location');
+			}
+		}
+
+		function updateAddress(lat, lon) {
+			var addressURL =  'http://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json&zoom=18&addressdetails=1&accept-language=en';
+			$.getJSON(addressURL, function (data) {
+				var address = [];
+				var street = [];
+				var city = [];
+				var state = [];
+				var country = [];
+				if (data.address.road ) { street.push(data.address.road); }
+				if (data.address.house_number ) { street.push(data.address.house_number); }
+				if (street.length > 0) { address.push(street.join(', ') + "\n"); }
+				if (data.address.city ) { city.push(data.address.city); }
+				if (data.address.hamlet) { city.push(data.address.hamlet); }
+				if (data.address.village) { city.push(data.address.village); }
+				if (city.length > 0) { address.push(city.join(', ') + "\n"); }
+				if (data.address.postcode) { state.push(data.address.postcode); }
+				if (data.address.country) { state.push(data.address.country); }
+				if (state.length > 0) { address.push(state.join(', ')); }
+				if ( address.length > 0 ) {
+					document.getElementById("location").value = address.join(', ');
+				}else{
+					document.getElementById("location").value = data.display_name;
+				}
+			});
+		}
+
+//TODO ITEM:
+//Change setNewMarkerPosition to create a marker if one does not exist... then addMarker and setNewMarkerPosition can be the same function
+//addMarker then becomes createMarker()
+
+		function addMarker(e) {
+			var markerLocation = new L.LatLng(e.latlng.lat, e.latlng.lng);
+			marker = new L.Marker(markerLocation, {draggable:true});
+			marker.on('dragend', setNewMarkerPosition);
+			markerEdit.clearLayers();
+			markerEdit.addLayer(marker);
+			updateAddress(e.latlng.lat.toFixed(6), e.latlng.lng.toFixed(6));
+			var addForm =  '<form>'+
+					'<div class="form-group">'+
+						'<label for="name">Company Name:</label>'+
+						'<input type="text" class="form-control" placeholder="Required" id="name" onchange="markerName = this.value" />'+
+					'</div>'+
+					'<div class="form-group">'+
+						'<label for="website">Website:</label>'+
+						'<input type="text" class="form-control" placeholder="http:// (Required)" id="website" onchange="markerWebsite = this.value" />'+
+					'</div>'+
+					'<form id="#addressLookup">'+
+						'<div class="form-group">'+
+							'<label for="website">Address Lookup:</label>'+
+							'<div class="input-group">'+
+								'<input type="text" class="form-control" placeholder="Enter Address" id="addressText" onchange="markerAddressText = this.value"/>'+
+								'<input style="display: none;" type="text" id="markerId" value="'+ markerEdit.getLayerId(marker) +'" aria-hidden="true"/>'+
+								'<span class="input-group-btn">'+
+									'<button class="btn btn-secondary" onclick="addressLookup(); return false;"><span class="oi oi-map-marker oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></button>'+
+								'</span>'+
+							'</div>'+
+						'</div>'+
+					'</form>'+
+					'<div class="form-group">'+
+						'<label for="address">Current Location:</label></br>'+
+						'<input class="form-control" type="text" id="location" readonly/>'+
+					'</div>'+
+					'<div class="form-group">'+
+						'<label for="type">Type:</label>'+
+						'<select class="form-control" id="type" >'+
+							'<optgroup label="Supplier">'+
+								'<option value=1>Supplier</option>'+
+								'<option value=9>Audio & Music</option>'+
+								'<option value=10>Animation & Video</option>'+
+								'<option value=11>Brand & Marketing</option>'+
+								'<option value=12>Localization & Writing</option>'+
+								'<option value=13>QA & Testing</option>'+
+								'<option value=14>VFX & Lighting</option>'+
+								'<option value=15>UI & Player Experience</option>'+
+								'<option value=16>Game & Level Design</option>'+
+								'<option value=17>Concept & Illustration</option>'+
+								'<option value=18>Environment & Character</option>'+
+								'<option value=19>Full Service & Co-Developmeny</option>'+
+							'<optgroup label="Developer">'+
+								'<option value=2>Developer</option>'+
+								'<option value=5>Virtual Reality</option>'+
+								'<option value=6>Mobile</option>'+
+								'<option value=7>Online</option>'+
+								'<option value=8>Developer and Publisher</option>'+
+							'<optgroup label="Publisher">'+
+								'<option value=4>Publisher</option>'+
+								'<option value=3>Organization</option>'+
+						'</select>'+
+					'</div>'+
+					'<input style="display: none;" type="text" id="location" name="location"/>'+
+					'<input style="display: none;" type="text" id="lat" value="'+e.latlng.lat.toFixed(6)+'" aria-hidden="true"/>'+
+					'<input style="display: none;" type="text" id="lng" value="'+e.latlng.lng.toFixed(6)+'" aria-hidden="true"/>'+
+					'<div class="container">'+
+						'<div class="row">'+
+							'<div class="col">'+
+								'<button type="button" class="btn" onclick="cancelRegistration()">Cancel</button>'+
+							'</div>'+
+							'<div class="col">'+
+								'<button type="button" class="btn btn-primary" onclick="insertCompany()">Submit</button>'+
+							'</div>'+
+						'</div>'+
+					'</div>'+
+				'</form>';
+			marker.bindPopup(addForm, {autoClose: false, closeOnClick: false, closeButton: false, keepInView: true, minWidth: 275, maxWidth: 800}).openPopup();
+			marker.setIcon(yellowIcon);
+			map.panTo(e.latlng);
+
+			//switch the onclick event from making a new marker to simply moving the existign one
+			map.removeEventListener('click', addMarker);
+			map.addEventListener('click', setNewMarkerPosition);
+		}
+
+		//Edit Company
+		function editCompany(markerId, companyId, companyName, companyWebsite, companyAddress, companyType, lat, lng) {
+			//make a new marker
+			markerName = companyName;
+			markerWebsite = companyWebsite;
+			markerAddressLookup = companyAddress;
+
+			//remove the old marker
+			markers.removeLayer( markerList[markerId] );
+			//create a new marker
+			marker = new L.Marker(new L.LatLng(lat, lng), {icon: yellowIcon, draggable: true});
+			markerEdit.addLayer(marker);
+
+			var editForm =  '<form id="regexpForm">'+
+					'<div class="form-group">'+
+						'<input style="display: none;" type="text" id="companyId" value="'+ companyId +'" aria-hidden="true"/>'+
+						'<label for="name">Company Name:</label>'+
+						'<div class="input-group">'+
+							'<input type="text" class="form-control" placeholder="Required" id="name" value="'+ companyName +'" onchange="markerName = this.value"/>'+
+							'<span class="input-group-btn">'+
+								'<a class="btn btn-secondary" "https://www.google.com/maps/search/'+ companyName +'" target="_blank" ><span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></a>'+
+							'</span>'+
+						'</div>'+
+					'</div>'+
+					'<div class="form-group">'+
+						'<label for="website">Website:</label>'+
+						'<div class="input-group">'+
+							'<input type="text" class="form-control" placeholder="http://" id="website" value="'+ companyWebsite +'" onchange="markerWebsite = this.value"/>'+
+							'<span class="input-group-btn">'+
+								'<a class="btn btn-secondary" href="'+ companyWebsite +'" target="_blank" ><span class="oi oi-external-link oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></a>'+
+							'</span>'+
+						'</div>'+
+					'</div>'+
+					'<form>'+
+						'<div class="form-group">'+
+							'<label for="website">Address Lookup:</label>'+
+							'<div class="input-group">'+
+								'<input type="text" class="form-control" placeholder="Enter Address" id="addressText" onchange="markerAddressText = this.value"/>'+
+								'<input style="display: none;" type="text" id="markerId" value="'+ markerEdit.getLayerId(marker) +'" aria-hidden="true"/>'+
+								'<span class="input-group-btn">'+
+									'<button class="btn btn-secondary" onclick="addressLookup();  return false;"><span class="oi oi-map-marker oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></button>'+
+								'</span>'+
+							'</div>'+
+						'</div>'+
+					'</form>'+
+					'<div class="form-group">'+
+						'<label for="location">Address:</label><br>'+
+						'<div class="input-group">'+
+							'<input class="form-control " type="text" id="location" value="'+ companyAddress +'" readonly/>'+
+							'<span class="input-group-btn">'+
+								'<a class="btn btn-secondary" href="https://www.google.com/maps/search/'+ companyAddress +'" target="_blank" ><span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></a>'+
+							'</span>'+
+						'</div>'+
+					'</div>'+
+					'<div class="form-group">'+
+						'<label for="type">Type:</label>'+
+						//'<div class="col-sm-10">'+
+							'<select class="form-control" id="type" >'+
+								'<optgroup label="Supplier">'+
+									'<option value=1>Supplier</option>'+
+									'<option value=9>Audio & Music</option>'+
+									'<option value=10>Animation & Video</option>'+
+									'<option value=11>Brand & Marketing</option>'+
+									'<option value=12>Localization & Writing</option>'+
+									'<option value=13>QA & Testing</option>'+
+									'<option value=14>VFX & Lighting</option>'+
+									'<option value=15>UI & Player Experience</option>'+
+									'<option value=16>Game & Level Design</option>'+
+									'<option value=17>Concept & Illustration</option>'+
+									'<option value=18>Environment & Character</option>'+
+									'<option value=19>Full Service & Co-Developmeny</option>'+
+								'<optgroup label="Developer">'+
+									'<option value=2>Developer</option>'+
+									'<option value=5>Virtual Reality</option>'+
+									'<option value=6>Mobile</option>'+
+									'<option value=7>Online</option>'+
+									'<option value=8>Developer and Publisher</option>'+
+								'<optgroup label="Publisher">'+
+									'<option value=4>Publisher</option>'+
+									'<option value=3>Organization</option>'+
+							'</select>'+
+						//'</div>'+
+						'<input style="display: none;" type="text" id="lat" value="'+lat+'" aria-hidden="true"/>'+
+						'<input style="display: none;" type="text" id="lng" value="'+lng+'" aria-hidden="true"/>'+
+					'</div>'+
+					'<div class="container">'+
+						'<div class="row">'+
+							'<div class="col">'+
+							'<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteCompanyModal">Delete</button>'+
+							//'<a class="btn btn-danger btn-sm" style="color:white;" href="#" onclick="$(\'#deleteCompanyModal\').modal(\'show\'); return false;">Delete</a>'+
+							'</div>'+
+							'<div class="col">'+
+							'<button type="button" class="btn btn-sm" onclick="cancelEdit()">Cancel</button>'+
+							'</div>'+
+							'<div class="col">'+
+							'<button type="button" class="btn btn-primary btn-sm" onclick="updateCompany()">Update</button>'+
+							'</div>'+
+						'</div>'+
+					'</div>'+
+				'</form>';
+			marker.bindPopup(editForm,{autoClose: false, closeOnClick: false, closeButton: false, keepInView: true, minWidth: 275, maxWidth: 800});
+			marker.on('click', function(){ marker.openPopup(); });
+			marker.openPopup();
+			map.panTo(new L.LatLng(lat,lng));
+			initEdit(marker);
+			document.getElementById('type').value = companyType;
+		}
+
+		//Name Validation
+		function validName(str) {
+			if (str.length == 0) {
+				alert("Please enter a Name");
+				return false;
+			} else {
+				return true;
+			}
+		}
+
+		//URL Validation
+		function validURL(testUrl) {
+			var pattern = new RegExp('^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})).?)(?::\d{2,5})?(?:[/?#]\S*)?$'); // fragment locater
+			if(!pattern.test(testUrl)) {
+				console.log(testUrl+' failed to validate')
+				alert("Please enter a valid URL");
+				return false;
+			} else {
+				return true;
+			}
+
+//TODO Item:
+//Get this code to work instead of the above string validation
+
+			/*
+			//Actually validate the website exists
+			$.ajax({
+				type : "GET",
+				url : testUrl,
+				//data : params,
+				crossDomain: true,
+				timeout:3000,
+				dataType : "jsonp",
+				jsonp : "jsonp",
+				success : function (response, textS, xhr) {
+					alert("ok");
+					return true;
+				},
+				error : function (xmlHttpRequest, textStatus, errorThrown) {
+					alert("not ok " + errorThrown);
+					 if(textStatus==='timeout')
+					  alert("request timed out");
+					return false;
+				}
+			});
+			*/
+
+		}
+
+
+
+
+		//Insert Company
+		function insertCompany() {
+			var name = $("#name").val();
+			var website = $("#website").val();
+			var address = $("#location").val();
+			var type = $("#type").val();
+			var lat = $("#lat").val();
+			var lng = $("#lng").val();
+			if (!validName(name)) { return false;}
+			if (!validURL(website)) { return false;}
+			$("#loading-mask").show();
+			$("#loading").show();
+			var dataString = 'name='+ name + '&website=' + website + '&type=' + type + '&address=' + address + '&lat=' + lat + '&lng=' + lng;
+			//console.log(dataString);
+			$.ajax({
+			  type: "POST",
+			  url: "company_add.php",
+			  data: dataString,
+			  success: function() {
+				cancelRegistration();
+				$("#loading-mask").hide();
+				$("#loading").hide();
+				$('#insertSuccessModal').modal('show');
+			  }
+			});
+			return false;
+		}
+
+ 		//Update Company
+		function updateCompany() {
+			var id = $("#companyId").val();
+			var name = $("#name").val();
+			var website = $("#website").val();
+			var address = $("#location").val();
+			var type = $("#type").val();
+			var lat = $("#lat").val();
+			var lng = $("#lng").val();
+			if (!validName(name)) { return false;}
+			if (!validURL(website)) { return false;}
+			$("#loading-mask").show();
+			$("#loading").show();
+			var dataString = 'id='+ id + '&name='+ name + '&website=' + website + '&type=' + type + '&address=' + address + '&lat=' + lat + '&lng=' + lng;
+			//console.log(dataString);
+			$.ajax({
+			  type: "POST",
+			  url: "company_edit.php",
+			  data: dataString,
+			  success: function() {
+				cancelEdit();
+				$("#loading-mask").hide();
+				$("#loading").hide();
+//				$("#insertSuccessModal").show();
+//				$("#insertSuccessModal").modal({ show: 'true' });
+				$('#insertSuccessModal').modal('show');
+			  }
+			});
+			return false;
+		}
+
+ 		//Delete Company
+		function deleteCompany() {
+			$("#loading-mask").show();
+			$("#loading").show();
+			var id = $("#companyId").val();
+			var dataString = 'id='+ id;
+			//console.log(dataString);
+			$.ajax({
+			  type: "POST",
+			  url: "company_remove.php",
+			  data: dataString,
+			  success: function() {
+				cancelEdit();
+				$("#loading-mask").hide();
+				$("#loading").hide();
+				$('#insertSuccessModal').modal('show');
+			  }
+			});
+			return false;
+		}
+
+
+/*************************/
+//		Examples
+/*************************/
+
+
+/*
+		//Click events example
+		function logEvent(ev) {
+			console.log(ev.type + ' fired on ' + ev.target, performance.now());
+		}
+
+		map.on('click', logEvent);
+		markers.on('click', logEvent);
+*/
+
+
+/*
+		//Move map to click example
+		map.on("click", function(e) {
+			map.originalEvent.preventDefault();
+		    map.setView(e.latlng, map.getZoom());
+	    });
+*/
+
+	</script>
+
+	</body>
+</html>
