@@ -21,7 +21,7 @@
 		<meta name="author" content="Kalvin Lyle" />
 
 		<!-- favicon -->
-		<link type="text/css" rel="shortcut icon" type="image/x-icon" href="img/favicon.ico">
+		<link type="text/css" rel="shortcut icon" type="image/x-icon" href="assets/brand/favicon.ico">
 
 		<!-- Leaflet CSS -->
 		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"
@@ -241,7 +241,7 @@
 		var world = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
 				attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
 				minZoom: 3,
-				maxZoom: 14,
+				maxZoom: 17,
 			}),
 			latlng = L.latLng(-37.82, 175.24);
 
@@ -351,6 +351,14 @@
 		};
 		map.addControl(addCompany);
 
+		//Add the Submit Issue button
+		var addCompany = new L.control({ position: 'bottomright' });
+		addCompany.onAdd = function (map) {
+			var div = L.DomUtil.create('div', 'leaflet-control-layers leaflet-control');
+			div.innerHTML = '<a class="leaflet-control" style="margin: 0; width: 40px; height: 40px; background-color: rgba(240,87,69,1.0);" href="https://github.com/kalvinlyle/artsourcehub.com/issues/new" target="_blank" title="Github"><span class="oi oi-bug oi-size-lg" style="padding-left: 6px; padding-top:0px; font-size: 30px; color: #ffffff;" title="Add Company" aria-hidden="true"></span></a>';
+			return div;
+		};
+		map.addControl(addCompany);
 		//Add search to the map
 		var controlSearch = new L.Control.Search({
 			container:'findbox',		
