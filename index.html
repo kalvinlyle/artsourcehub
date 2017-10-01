@@ -240,17 +240,16 @@
 /*************************/
 
 		firstLoad = true;
-		markerList = [];
-
+		
 		var world = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
 				attribution: 'Tiles &copy; Esri &mdash; Source: Esri, DeLorme, NAVTEQ, USGS, Intermap, iPC, NRCAN, Esri Japan, METI, Esri China (Hong Kong), Esri (Thailand), TomTom, 2012',
 				minZoom: 3,
 				maxZoom: 17,
 			}),
-			latlng = L.latLng(-37.82, 175.24);
+			latlng = L.latLng(50, 10);
 
 		//Create Map
-		var map = L.map('map', {layers: [world]});
+		var map = L.map('map', {layers: [world], worldCopyJump: true, center: latlng});
 
 //TODO ITEM:
 //Grab list of Layer Groups from the database and add them automatically
@@ -377,7 +376,14 @@
 		map.addControl( controlSearch );
 
 		//Add the Layers Selector to the UI
-		var mapLayers = L.control.groupedLayers(null, groupedOverlays);
+		var groupedLayerOptions = {
+		  // Make the "Landmarks" group exclusive (use radio inputs)
+		  //exclusiveGroups: ["Landmarks"],
+		  // Show a checkbox next to non-exclusive group labels for toggling all
+		  groupCheckboxes: true
+		};
+
+		var mapLayers = L.control.groupedLayers(null, groupedOverlays, groupedLayerOptions);
 		map.addControl(mapLayers);
 
 		//Get Markers the first time the page is loaded and set the initial view
@@ -392,7 +398,7 @@
 				}
 				map.on('locationerror', onLocationError);
 			} else {
-				map.setView([35, -35], 1);
+				map.setView(latlng, 4);
 				//var bounds = markers.getBounds();
 				//map.fitBounds(bounds, {maxZoom: 15});
 			}
@@ -403,7 +409,7 @@
 /*************************/
 
 //TODO ITEM:
-//switch to L.Divicon so the CSS can be swapped to grey out markers
+//switch to L.Divicon so the CSS can be swapped to grey out markers rather than having to reload all the markers after an edit
 
 		var greenIcon = L.icon({
 			iconUrl: 'assets/images/marker-icon-green.png',
@@ -454,7 +460,7 @@
 /*************************/
 
 //TODO ITEM:
-//Read in the Marker Data to an array, then make addPopup, setIcon setGroup etc functions.
+//Make addPopup, setIcon, setGroup etc functions.
 
 		//Get Markers and add them to the map
 		function getMarkers() {
@@ -469,27 +475,12 @@
 					var companyLat = data[i].lat;
 					var companyLng = data[i].lng;
 					var location = new L.LatLng(companyLat, companyLng);
-					if (companyWebsite.length > 0) {
-						var title = "<div style='font-size: 18px; color: #0078A8;'><a href='"+ companyWebsite +"' target='_blank'>"+ companyName + "</a></div>";
-					} else {
-						var title = "<div style='font-size: 18px; color: #0078A8;'>"+ companyName +"</div>";
-					}
-					var address = "<div style='font-size: 14px;'>"+ companyAddress +"</div>";				
-					var editButton = '</br><form id="inputform" enctype="multipart/form-data">'+
-						'<input style="display: none;" type="text" id="markerId" name="markerId" value="'+ i +'"/>'+
-						'<input style="display: none;" type="text" id="companyId" name="companyId" value="'+ companyId +'"/>'+
-						'<input style="display: none;" type="text" id="companyName" name="companyName" value="'+ companyName +'"/>'+
-						'<input style="display: none;" type="text" id="companyWebsite" name="companyWebsite" value="'+ companyWebsite +'"/>'+
-						'<input style="display: none;" type="text" id="companyAddress" name="companyAddress" value="'+ companyAddress +'"/>'+
-						'<input style="display: none;" type="text" id="companyType" name="companyType" value="'+ companyType +'"/>'+
-						'<input style="display: none;" type="text" id="lat" name="lat" value="'+ companyLat +'" />'+
-						'<input style="display: none;" type="text" id="lng" name="lng" value="'+ companyLng +'" />'+
-						'<div class="row-fluid">'+
-						'<div class="span" style="text-align:center;"><button type="button" class="btn btn-primary" onclick="editCompany('+ i +', '+ companyId +', \''+ companyName.replace(/'/ig, "\\'") +'\', \''+ companyWebsite +'\', \''+ companyAddress +'\', '+ companyType +', '+ companyLat +', '+ companyLng +')">Edit</button></div>'+
-						'</div>'+
-						'</form>';
 					var markerGroup;
 					var markerOptions = {title: companyName};
+
+//TODO ITEM:
+//Move group type icon colour to the database.
+
 					switch(companyTypeName) {
 						case "Developer":
 							markerOptions = {icon: greenIcon, title: companyName};
@@ -569,11 +560,33 @@
 							break;
 					}
 					var marker = new L.Marker(location, markerOptions);
+					markers.addLayer(marker);
+					marker.addTo(markerGroup);
+
+					//create popup contents
+					var title = "<div style='font-size: 18px; color: #0078A8;'>";	
+					if (companyWebsite.length > 0) {
+						title = title +"<a href='"+ companyWebsite +"' target='_blank'>"+ companyName + "</a>";
+					} else {
+						title = title + companyName;
+					}
+					title = title +"</div>";
+					var address = "<div style='font-size: 14px;'>"+ companyAddress +"</div>";				
+					var editButton = '</br><form id="inputform" enctype="multipart/form-data">'+
+						'<input style="display: none;" type="text" id="markerId" name="markerId" value="'+ markers.getLayerId(marker) +'"/>'+
+						'<input style="display: none;" type="text" id="companyId" name="companyId" value="'+ companyId +'"/>'+
+						'<input style="display: none;" type="text" id="companyName" name="companyName" value="'+ companyName +'"/>'+
+						'<input style="display: none;" type="text" id="companyWebsite" name="companyWebsite" value="'+ companyWebsite +'"/>'+
+						'<input style="display: none;" type="text" id="companyAddress" name="companyAddress" value="'+ companyAddress +'"/>'+
+						'<input style="display: none;" type="text" id="companyType" name="companyType" value="'+ companyType +'"/>'+
+						'<input style="display: none;" type="text" id="lat" name="lat" value="'+ companyLat +'" />'+
+						'<input style="display: none;" type="text" id="lng" name="lng" value="'+ companyLng +'" />'+
+						'<div class="row-fluid">'+
+						'<div class="span" style="text-align:center;"><button type="button" class="btn btn-primary" onclick="editCompany('+ markers.getLayerId(marker) +', '+ companyId +', \''+ companyName.replace(/'/ig, "\\'") +'\', \''+ companyWebsite +'\', \''+ companyAddress.replace(/\&apos;/ig, "\\'") +'\', '+ companyType +', '+ companyLat +', '+ companyLng +')">Edit</button></div>'+
+						'</div>'+
+						'</form>';
 					marker.bindPopup("<div style='text-align: center; margin-left: auto; margin-right: auto;'>"+ title + address + editButton +"</div>", {maxWidth: '400'});
 //					marker.addTo(markerGroup).on('click', onClick); //sends an onclick event for that marker
-					marker.addTo(markerGroup);
-					markers.addLayer(marker);
-					markerList.push(marker);
 				}
 			}, function() {
 				if (firstLoad == true) {
@@ -600,7 +613,7 @@
 		//Start Add Mode
 		function initRegistration() {
 			$('link[rel=stylesheet][href*="MarkerCluster.Default.css"]').remove();
-			addcss("leaflet -markercluster/MarkerCluster.Disabled.css");
+			addcss("leaflet-markercluster/MarkerCluster.Disabled.css");
 			//marker.on('dragend', setNewMarkerPosition);
 			map.addEventListener('click', addMarker);
 			markers.options.zoomToBoundsOnClick = false;			//disable clusterclick
@@ -645,7 +658,6 @@
 			markers.options.zoomToBoundsOnClick = true;			//enable clusterclick
 			map.addControl(addCompany);
 			map.addControl(mapLayers);
-			markerList = [];
 			markers.clearLayers();
 			markerEdit.clearLayers();
 			getMarkers();
@@ -665,7 +677,6 @@
 			markers.options.zoomToBoundsOnClick = true;			//enable clusterclick
 			map.addControl(addCompany);
 			map.addControl(mapLayers);
-			markerList = [];
 			markers.clearLayers();
 			markerEdit.clearLayers();
 			getMarkers();
@@ -690,7 +701,7 @@
 			});
 			document.getElementById("website").value = markerWebsite;
 			document.getElementById("name").value = markerName;
-			document.getElementById("addressText").value = markerAddressText;
+			document.getElementById("location").value = markerAddressText;
 			document.getElementById("type").value = markerType;
 			document.getElementById("lat").value = latlng.lat.toFixed(6);
 			document.getElementById("lng").value = latlng.lng.toFixed(6);
@@ -715,7 +726,7 @@
 							marker.openPopup();
 							document.getElementById("website").value = markerWebsite;
 							document.getElementById("name").value = markerName;
-							document.getElementById("addressText").value = markerAddressText;
+							document.getElementById("location").value = markerAddressText;
 							document.getElementById("type").value = markerType;
 							document.getElementById("lat").value = data[0].lat;
 							document.getElementById("lng").value = data[0].lon;
@@ -768,138 +779,44 @@
 			markerEdit.clearLayers();
 			markerEdit.addLayer(marker);
 			updateAddress(e.latlng.lat.toFixed(6), e.latlng.lng.toFixed(6));
+			markerType = 1;
 			var addForm =  '<form>'+
-					'<div class="form-group">'+
-						'<label for="name">Company Name:</label>'+
-						'<input type="text" class="form-control" placeholder="Required" id="name" onchange="markerName = this.value" />'+
+					'<div class="form-group" style="margin-bottom:8px">'+
+						'<h5>Add Company</h5>'+
 					'</div>'+
-					'<div class="form-group">'+
-						'<label for="website">Website:</label>'+
-						'<input type="text" class="form-control" placeholder="http:// (Required)" id="website" onchange="markerWebsite = this.value" />'+
+					'<div class="form-group" style="margin-bottom:8px">'+
+						'<div class="input-group">'+
+							'<label class="input-group-addon" id="basic-addon3">Name</label>'+
+							'<input type="text" class="form-control" placeholder="Required" id="name" onchange="markerName = this.value" />'+
+						'</div>'+
+					'</div>'+
+					'<div class="form-group" style="margin-bottom:8px">'+
+						'<div class="input-group">'+
+							'<label class="input-group-addon" id="basic-addon3">URL</label>'+
+							'<input type="text" class="form-control" placeholder="http:// (Required)" id="website" onchange="markerWebsite = this.value" />'+
+						'</div>'+
 					'</div>'+
 					'<form id="#addressLookup">'+
-						'<div class="form-group">'+
-							'<label for="website">Address Lookup:</label>'+
+						'<div class="form-group" style="margin-bottom:8px">'+
 							'<div class="input-group">'+
-								'<input type="text" class="form-control" placeholder="Enter Address" id="addressText" onchange="markerAddressText = this.value"/>'+
+								'<label class="input-group-addon" id="basic-addon3">Addr.</label>'+
+								'<input type="text" class="form-control" placeholder="Enter Address" id="location" onchange="markerAddressText = this.value"/>'+
 								'<input style="display: none;" type="text" id="markerId" value="'+ markerEdit.getLayerId(marker) +'" aria-hidden="true"/>'+
-								'<span class="input-group-btn">'+
-									'<button class="btn btn-secondary" onclick="addressLookup(); return false;"><span class="oi oi-map-marker oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></button>'+
+								'<span class="input-group-btn" >'+
+									'<button class="btn btn-secondary" onclick="addressLookup(); return false;" style="padding: 5px 10px 5px 10px; "><span class="oi oi-map-marker oi-size-lg" style="padding-top: 2px; font-size: 20px; color: #ffffff;" aria-hidden="true"></span></button>'+
 								'</span>'+
 							'</div>'+
 						'</div>'+
 					'</form>'+
+					/*
 					'<div class="form-group">'+
 						'<label for="address">Current Location:</label></br>'+
 						'<input class="form-control" type="text" id="location" readonly/>'+
 					'</div>'+
-					'<div class="form-group">'+
-						'<label for="type">Type:</label>'+
-						'<select class="form-control" id="type" onchange="markerType = this.value">'+
-							'<optgroup label="Supplier">'+
-								'<option value=1>Supplier</option>'+
-								'<option value=9>Audio & Music</option>'+
-								'<option value=10>Animation & Video</option>'+
-								'<option value=11>Brand & Marketing</option>'+
-								'<option value=12>Localization & Writing</option>'+
-								'<option value=13>QA & Testing</option>'+
-								'<option value=14>VFX & Lighting</option>'+
-								'<option value=15>UI & Player Experience</option>'+
-								'<option value=16>Game & Level Design</option>'+
-								'<option value=17>Concept & Illustration</option>'+
-								'<option value=18>Environment & Character</option>'+
-								'<option value=19>Full Service & Co-Developmeny</option>'+
-							'<optgroup label="Developer">'+
-								'<option value=2>Developer</option>'+
-								'<option value=5>Virtual Reality</option>'+
-								'<option value=6>Mobile</option>'+
-								'<option value=7>Online</option>'+
-								'<option value=8>Developer and Publisher</option>'+
-							'<optgroup label="Publisher">'+
-								'<option value=4>Publisher</option>'+
-								'<option value=3>Organization</option>'+
-						'</select>'+
-					'</div>'+
-					'<input style="display: none;" type="text" id="location" name="location"/>'+
-					'<input style="display: none;" type="text" id="lat" value="'+e.latlng.lat.toFixed(6)+'" aria-hidden="true"/>'+
-					'<input style="display: none;" type="text" id="lng" value="'+e.latlng.lng.toFixed(6)+'" aria-hidden="true"/>'+
-					'<div class="container">'+
-						'<div class="row">'+
-							'<div class="col">'+
-								'<button type="button" class="btn" onclick="cancelRegistration()">Cancel</button>'+
-							'</div>'+
-							'<div class="col">'+
-								'<button type="button" class="btn btn-primary" onclick="insertCompany()">Submit</button>'+
-							'</div>'+
-						'</div>'+
-					'</div>'+
-				'</form>';
-			marker.bindPopup(addForm, {autoClose: false, closeOnClick: false, closeButton: false, keepInView: true, minWidth: 275, maxWidth: 800}).openPopup();
-			marker.setIcon(yellowIcon);
-			map.panTo(e.latlng);
-
-			//switch the onclick event from making a new marker to simply moving the existign one
-			map.removeEventListener('click', addMarker);
-			map.addEventListener('click', setNewMarkerPosition);
-		}
-
-		//Edit Company
-		function editCompany(markerId, companyId, companyName, companyWebsite, companyAddress, companyType, lat, lng) {
-			//make a new marker
-			markerName = companyName;
-			markerWebsite = companyWebsite;
-			markerAddressLookup = companyAddress;
-
-			//remove the old marker
-			markers.removeLayer( markerList[markerId] );
-			//create a new marker
-			marker = new L.Marker(new L.LatLng(lat, lng), {icon: yellowIcon, draggable: true});
-			markerEdit.addLayer(marker);
-
-			var editForm =  '<form id="regexpForm">'+
-					'<div class="form-group">'+
-						'<input style="display: none;" type="text" id="companyId" value="'+ companyId +'" aria-hidden="true"/>'+
-						'<label for="name">Company Name:</label>'+
+					*/
+					'<div class="form-group" style="margin-bottom:8px">'+
 						'<div class="input-group">'+
-							'<input type="text" class="form-control" placeholder="Required" id="name" value="'+ companyName +'" onchange="markerName = this.value"/>'+
-							'<span class="input-group-btn">'+
-								'<a class="btn btn-secondary" "https://www.google.com/maps/search/'+ companyName +'" target="_blank" ><span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></a>'+
-							'</span>'+
-						'</div>'+
-					'</div>'+
-					'<div class="form-group">'+
-						'<label for="website">Website:</label>'+
-						'<div class="input-group">'+
-							'<input type="text" class="form-control" placeholder="http://" id="website" value="'+ companyWebsite +'" onchange="markerWebsite = this.value"/>'+
-							'<span class="input-group-btn">'+
-								'<a class="btn btn-secondary" href="'+ companyWebsite +'" target="_blank" ><span class="oi oi-external-link oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></a>'+
-							'</span>'+
-						'</div>'+
-					'</div>'+
-					'<form>'+
-						'<div class="form-group">'+
-							'<label for="website">Address Lookup:</label>'+
-							'<div class="input-group">'+
-								'<input type="text" class="form-control" placeholder="Enter Address" id="addressText" onchange="markerAddressText = this.value"/>'+
-								'<input style="display: none;" type="text" id="markerId" value="'+ markerEdit.getLayerId(marker) +'" aria-hidden="true"/>'+
-								'<span class="input-group-btn">'+
-									'<button class="btn btn-secondary" onclick="addressLookup();  return false;"><span class="oi oi-map-marker oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></button>'+
-								'</span>'+
-							'</div>'+
-						'</div>'+
-					'</form>'+
-					'<div class="form-group">'+
-						'<label for="location">Address:</label><br>'+
-						'<div class="input-group">'+
-							'<input class="form-control " type="text" id="location" value="'+ companyAddress +'" readonly/>'+
-							'<span class="input-group-btn">'+
-								'<a class="btn btn-secondary" href="https://www.google.com/maps/search/'+ companyAddress +'" target="_blank" ><span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></a>'+
-							'</span>'+
-						'</div>'+
-					'</div>'+
-					'<div class="form-group">'+
-						'<label for="type">Type:</label>'+
-						//'<div class="col-sm-10">'+
+							'<label class="input-group-addon" id="basic-addon3">Type</label>'+
 							'<select class="form-control" id="type" onchange="markerType = this.value">'+
 								'<optgroup label="Supplier">'+
 									'<option value=1>Supplier</option>'+
@@ -924,26 +841,131 @@
 									'<option value=4>Publisher</option>'+
 									'<option value=3>Organization</option>'+
 							'</select>'+
-						//'</div>'+
+						'</div>'+
+					'</div>'+
+					'<input style="display: none;" type="text" id="location" name="location"/>'+
+					'<input style="display: none;" type="text" id="lat" value="'+e.latlng.lat.toFixed(6)+'" aria-hidden="true"/>'+
+					'<input style="display: none;" type="text" id="lng" value="'+e.latlng.lng.toFixed(6)+'" aria-hidden="true"/>'+
+					'<div class="modal-footer" style="padding: 0px; border: 0px;">'+
+						'<button type="button" class="btn" onclick="cancelRegistration()">Cancel</button>'+
+						'<button type="button" class="btn btn-primary" onclick="insertCompany()">Submit</button>'+
+					'</div>'+
+				'</form>';
+			marker.bindPopup(addForm, {autoClose: false, closeOnClick: false, closeButton: false, autoPanPadding: 5, keepInView: false, minWidth: 300, maxWidth: 800}).openPopup();
+			marker.setIcon(yellowIcon);
+			map.panTo(e.latlng);
+
+			//switch the onclick event from making a new marker to simply moving the existign one
+			map.removeEventListener('click', addMarker);
+			map.addEventListener('click', setNewMarkerPosition);
+		}
+
+		//Edit Company
+		function editCompany(markerId, companyId, companyName, companyWebsite, companyAddress, companyType, lat, lng) {
+			//make a new marker
+			markerName = companyName;
+			markerWebsite = companyWebsite;
+			markerAddressLookup = companyAddress;
+			markerType = companyType;
+
+			//remove the old marker
+			markers.removeLayer(markers.getLayer(markerId));
+
+			//create a new marker
+			marker = new L.Marker(new L.LatLng(lat, lng), {icon: yellowIcon, draggable: true});
+			markerEdit.addLayer(marker);
+
+			var editForm =  '<form id="regexpForm">'+
+					'<div class="form-group" style="margin-bottom:8px">'+
+						'<h5>Edit Company</h5>'+
+					'</div>'+
+					'<div class="form-group" style="margin-bottom:8px">'+
+						'<input style="display: none;" type="text" id="companyId" value="'+ companyId +'" aria-hidden="true"/>'+
+						'<div class="input-group">'+
+							'<label class="input-group-addon" id="basic-addon3">Name</label>'+
+							'<input type="text" class="form-control" placeholder="Required" id="name" value="'+ companyName +'" onchange="markerName = this.value"/>'+
+							'<span class="input-group-btn">'+
+							'<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'+
+								'<span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:2px; font-size: 20px; color: #ffffff;" aria-hidden="true"></span>'+
+							'</button>'+
+
+								'<div class="dropdown-menu">'+
+									'<a class="dropdown-item" href="https://www.google.com/search?q='+ companyName +'" target="_blank" style="padding: 5px 10px 5px 10px; "><span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:2px; font-size: 20px; color: #6c757d;" aria-hidden="true"></span> Search Google</a>'+
+									'<a class="dropdown-item" href="https://www.google.com/maps/search/'+ companyName +'" target="_blank" style="padding: 5px 10px 5px 10px; "><span class="oi oi-map-marker oi-size-lg" style="padding-top: 2px; font-size: 20px; color: #6c757d;" aria-hidden="true"></span> Search Google Maps</a>'+
+								'</div>'+
+							'</span>'+
+						'</div>'+
+					'</div>'+
+					'<div class="form-group" style="margin-bottom:8px">'+
+						'<div class="input-group">'+
+							'<label class="input-group-addon" id="basic-addon3">URL</label>'+
+							'<input type="text" class="form-control" placeholder="http://" id="website" value="'+ companyWebsite +'" onchange="markerWebsite = this.value"/>'+
+							'<span class="input-group-btn">'+
+								'<a class="btn btn-secondary" href="'+ companyWebsite +'" target="_blank" style="padding: 5px 10px 5px 10px; "><span class="oi oi-external-link oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></a>'+
+							'</span>'+
+						'</div>'+
+					'</div>'+
+					'<form>'+
+						'<div class="form-group" style="margin-bottom:8px">'+
+							'<div class="input-group">'+
+								'<label class="input-group-addon" id="basic-addon3">Addr.</label>'+
+								'<input type="text" class="form-control" placeholder="Enter Address" id="location" value="'+ companyAddress +'" onchange="markerAddressText = this.value"/>'+
+								'<input style="display: none;" type="text" id="markerId" value="'+ markerEdit.getLayerId(marker) +'" aria-hidden="true"/>'+
+								'<span class="input-group-btn">'+
+									'<button class="btn btn-secondary" onclick="addressLookup(); return false;" style="padding: 5px 10px 5px 10px; "><span class="oi oi-map-marker oi-size-lg" style="padding-top: 2px; font-size: 20px; color: #ffffff;" aria-hidden="true"></span></button>'+
+								'</span>'+
+							'</div>'+
+						'</div>'+
+					'</form>'+
+					/*
+					'<div class="form-group">'+
+						'<label for="location">Address:</label><br>'+
+						'<div class="input-group">'+
+							'<input class="form-control " type="text" id="location" value="'+ companyAddress +'" readonly/>'+
+							'<span class="input-group-btn">'+
+								'<a class="btn btn-secondary" href="https://www.google.com/maps/search/'+ companyAddress +'" target="_blank" ><span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></a>'+
+							'</span>'+
+						'</div>'+
+					'</div>'+
+					*/
+					'<div class="form-group" style="margin-bottom:8px">'+
+						'<div class="input-group">'+
+							'<label class="input-group-addon" id="basic-addon3">Type</label>'+
+							'<select class="form-control" id="type" onchange="markerType = this.value">'+
+								'<optgroup label="Supplier">'+
+									'<option value=1>Supplier</option>'+
+									'<option value=9>Audio & Music</option>'+
+									'<option value=10>Animation & Video</option>'+
+									'<option value=11>Brand & Marketing</option>'+
+									'<option value=12>Localization & Writing</option>'+
+									'<option value=13>QA & Testing</option>'+
+									'<option value=14>VFX & Lighting</option>'+
+									'<option value=15>UI & Player Experience</option>'+
+									'<option value=16>Game & Level Design</option>'+
+									'<option value=17>Concept & Illustration</option>'+
+									'<option value=18>Environment & Character</option>'+
+									'<option value=19>Full Service & Co-Developmeny</option>'+
+								'<optgroup label="Developer">'+
+									'<option value=2>Developer</option>'+
+									'<option value=5>Virtual Reality</option>'+
+									'<option value=6>Mobile</option>'+
+									'<option value=7>Online</option>'+
+									'<option value=8>Developer and Publisher</option>'+
+								'<optgroup label="Publisher">'+
+									'<option value=4>Publisher</option>'+
+									'<option value=3>Organization</option>'+
+							'</select>'+
+						'</div>'+
 						'<input style="display: none;" type="text" id="lat" value="'+lat+'" aria-hidden="true"/>'+
 						'<input style="display: none;" type="text" id="lng" value="'+lng+'" aria-hidden="true"/>'+
 					'</div>'+
-					'<div class="container">'+
-						'<div class="row">'+
-							'<div class="col">'+
-							'<button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteCompanyModal">Delete</button>'+
-							//'<a class="btn btn-danger btn-sm" style="color:white;" href="#" onclick="$(\'#deleteCompanyModal\').modal(\'show\'); return false;">Delete</a>'+
-							'</div>'+
-							'<div class="col">'+
-							'<button type="button" class="btn btn-sm" onclick="cancelEdit()">Cancel</button>'+
-							'</div>'+
-							'<div class="col">'+
-							'<button type="button" class="btn btn-primary btn-sm" onclick="updateCompany()">Update</button>'+
-							'</div>'+
-						'</div>'+
+					'<div class="modal-footer" style="padding: 0px; border: 0px;">'+
+						'<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteCompanyModal">Delete</button>'+
+						'<button type="button" class="btn" onclick="cancelEdit()">Cancel</button>'+
+						'<button type="button" class="btn btn-primary" onclick="updateCompany()">Update</button>'+
 					'</div>'+
 				'</form>';
-			marker.bindPopup(editForm,{autoClose: false, closeOnClick: false, closeButton: false, keepInView: true, minWidth: 275, maxWidth: 800});
+			marker.bindPopup(editForm,{autoClose: false, closeOnClick: false, closeButton: false, autoPanPadding: 5, keepInView: false, minWidth: 300, maxWidth: 800});
 			marker.on('click', function(){ marker.openPopup(); });
 			marker.openPopup();
 			map.panTo(new L.LatLng(lat,lng));
@@ -965,7 +987,7 @@
 		function validURL(testUrl) {
 			var pattern = new RegExp('^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})).?)(?::\d{2,5})?(?:[/?#]\S*)?$'); // fragment locater
 			if(!pattern.test(testUrl)) {
-				console.log(testUrl+' failed to validate')
+				//console.log(testUrl+' failed to validate')
 				alert("Please enter a valid URL");
 				return false;
 			} else {
@@ -1000,9 +1022,6 @@
 
 		}
 
-
-
-
 		//Insert Company
 		function insertCompany() {
 			var name = $("#name").val();
@@ -1016,7 +1035,6 @@
 			$("#loading-mask").show();
 			$("#loading").show();
 			var dataString = 'name='+ name + '&website=' + website + '&type=' + type + '&address=' + address + '&lat=' + lat + '&lng=' + lng;
-			//console.log(dataString);
 			$.ajax({
 			  type: "POST",
 			  url: "company_add.php",
@@ -1045,7 +1063,6 @@
 			$("#loading-mask").show();
 			$("#loading").show();
 			var dataString = 'id='+ id + '&name='+ name + '&website=' + website + '&type=' + type + '&address=' + address + '&lat=' + lat + '&lng=' + lng;
-			//console.log(dataString);
 			$.ajax({
 			  type: "POST",
 			  url: "company_edit.php",

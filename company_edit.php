@@ -1,8 +1,8 @@
 <?php
 $id = htmlspecialchars(trim($_POST['id']));
-$name = htmlspecialchars(trim($_POST['name']));
+$name = str_replace("'", "&apos;", htmlspecialchars(trim($_POST['name'])));
 $website = htmlspecialchars(trim($_POST['website']));
-$address = htmlspecialchars(trim($_POST['address']));
+$address = str_replace("'", "&apos;", htmlspecialchars(trim($_POST['address'])));
 $type = (int)htmlspecialchars(trim($_POST['type']));
 $lat = htmlspecialchars(trim($_POST['lat']));
 $lng = htmlspecialchars(trim($_POST['lng']));
