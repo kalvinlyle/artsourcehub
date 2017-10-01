@@ -27,6 +27,10 @@
 		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.2.0/dist/leaflet.css"
 			integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ=="
 			crossorigin=""/>
+<!--
+		<link rel="stylesheet" href="leaflet.markercluster/MarkerCluster.css" />
+		<link rel="stylesheet" href="leaflet.markercluster/MarkerCluster.Default.css" />
+-->
 		<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.0.6/dist/MarkerCluster.css" />
 		<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.0.6/dist/MarkerCluster.Default.css" />
 		<link rel="stylesheet" href="leaflet.groupedlayercontrol/leaflet.groupedlayercontrol.min.css" />
@@ -583,8 +587,19 @@
 //TODO ITEM:
 //It must be possible to combine initRegistration and initEdit functions into one
 
+		function addcss(css){
+			var head = document.getElementsByTagName('head')[0];
+			var s = document.createElement('link');
+			s.setAttribute('type', 'text/css');
+			s.setAttribute('rel', 'stylesheet');
+			s.setAttribute('href', css);
+			head.appendChild(s);
+		}
+
 		//Start Add Mode
 		function initRegistration() {
+			$('link[rel=stylesheet][href*="MarkerCluster.Default.css"]').remove();
+			addcss("leaflet -markercluster/MarkerCluster.Disabled.css");
 			//marker.on('dragend', setNewMarkerPosition);
 			map.addEventListener('click', addMarker);
 			map.removeControl(addCompany);
@@ -600,6 +615,8 @@
 
 		//Start Edit Mode
 		function initEdit(marker) {
+			$('link[rel=stylesheet][href*="MarkerCluster.Default.css"]').remove();
+			addcss("leaflet-markercluster/MarkerCluster.Disabled.css");
 			marker.on('dragend', setNewMarkerPosition);
 			map.addEventListener('click', setNewMarkerPosition);		//Clicking on the map will set newMarker positions
 			map.removeControl(addCompany);
@@ -617,6 +634,8 @@
 //It must be possible to combine cancelRegistration and cancelEdit functions into one
 
 		function cancelRegistration() {
+			$('link[rel=stylesheet][href~="MarkerCluster.Disabled.css"]').remove();
+			addcss("leaflet-markercluster/MarkerCluster.Default.css");
 			$('#map').css('cursor', '');
 			map.removeEventListener('click', addMarker);
 			map.removeEventListener('click', setNewMarkerPosition);
@@ -629,10 +648,13 @@
 			markerName = "";
 			markerWebsite = "";
 			markerAddressText = "";
+			markerType = "";
 		}
 
 		//Start Edit Mode
 		function cancelEdit() {
+			$('link[rel=stylesheet][href~="MarkerCluster.Disabled.css"]').remove();
+			addcss("leaflet-markercluster/MarkerCluster.Default.css");
 			$('#map').css('cursor', '');
 			map.options.closePopupOnClick = true;
 			map.removeEventListener('click', setNewMarkerPosition);
@@ -645,12 +667,14 @@
 			markerName = "";
 			markerWebsite = "";
 			markerAddressText = "";
+			markerType = "";
 		}
 
 		//Global variables to remember the Form data between clicks
 		var markerName = "";
 		var markerWebsite = "";
 		var markerAddressText = "";
+		var markerType = "";
 
 		// Reopen popups and update LatLng data
 		function setNewMarkerPosition(e) {
@@ -662,6 +686,7 @@
 			document.getElementById("website").value = markerWebsite;
 			document.getElementById("name").value = markerName;
 			document.getElementById("addressText").value = markerAddressText;
+			document.getElementById("type").value = markerType;
 			document.getElementById("lat").value = latlng.lat.toFixed(6);
 			document.getElementById("lng").value = latlng.lng.toFixed(6);
 			updateAddress(latlng.lat.toFixed(6), latlng.lng.toFixed(6));
@@ -686,6 +711,7 @@
 							document.getElementById("website").value = markerWebsite;
 							document.getElementById("name").value = markerName;
 							document.getElementById("addressText").value = markerAddressText;
+							document.getElementById("type").value = markerType;
 							document.getElementById("lat").value = data[0].lat;
 							document.getElementById("lng").value = data[0].lon;
 							updateAddress(data[0].lat, data[0].lon);
@@ -764,7 +790,7 @@
 					'</div>'+
 					'<div class="form-group">'+
 						'<label for="type">Type:</label>'+
-						'<select class="form-control" id="type" >'+
+						'<select class="form-control" id="type" onchange="markerType = this.value">'+
 							'<optgroup label="Supplier">'+
 								'<option value=1>Supplier</option>'+
 								'<option value=9>Audio & Music</option>'+
@@ -869,7 +895,7 @@
 					'<div class="form-group">'+
 						'<label for="type">Type:</label>'+
 						//'<div class="col-sm-10">'+
-							'<select class="form-control" id="type" >'+
+							'<select class="form-control" id="type" onchange="markerType = this.value">'+
 								'<optgroup label="Supplier">'+
 									'<option value=1>Supplier</option>'+
 									'<option value=9>Audio & Music</option>'+
