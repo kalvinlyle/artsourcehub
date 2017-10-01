@@ -602,10 +602,11 @@
 			addcss("leaflet -markercluster/MarkerCluster.Disabled.css");
 			//marker.on('dragend', setNewMarkerPosition);
 			map.addEventListener('click', addMarker);
+			markers.options.zoomToBoundsOnClick = false;			//disable clusterclick
 			map.removeControl(addCompany);
 			map.removeControl(mapLayers);
 			markers.eachLayer(function(m){
-				m.options.interactive= false;
+				m.options.interactive = false;
 				m.setIcon(greyIcon);
 			});
 			$('#map').css('cursor', 'crosshair');
@@ -619,6 +620,7 @@
 			addcss("leaflet-markercluster/MarkerCluster.Disabled.css");
 			marker.on('dragend', setNewMarkerPosition);
 			map.addEventListener('click', setNewMarkerPosition);		//Clicking on the map will set newMarker positions
+			markers.options.zoomToBoundsOnClick = false;			//disable clusterclick
 			map.removeControl(addCompany);
 			map.removeControl(mapLayers);
 			markers.eachLayer(function(m){			//make all other markers non-interactve
@@ -639,6 +641,7 @@
 			$('#map').css('cursor', '');
 			map.removeEventListener('click', addMarker);
 			map.removeEventListener('click', setNewMarkerPosition);
+			markers.options.zoomToBoundsOnClick = true;			//enable clusterclick
 			map.addControl(addCompany);
 			map.addControl(mapLayers);
 			markerList = [];
@@ -658,6 +661,7 @@
 			$('#map').css('cursor', '');
 			map.options.closePopupOnClick = true;
 			map.removeEventListener('click', setNewMarkerPosition);
+			markers.options.zoomToBoundsOnClick = true;			//enable clusterclick
 			map.addControl(addCompany);
 			map.addControl(mapLayers);
 			markerList = [];
