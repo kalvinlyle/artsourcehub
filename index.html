@@ -345,10 +345,10 @@
 			"Mobile Devs": mobile,
 			"Virtual Reality": vr,
 			"Online": online,
-			"Self Publishing": selfpub,
-			"Organization": organization
+			"Self Publishing": selfpub
 		  },
 		  "Publisher": {
+			"Organization": organization,
 			"Publisher": publisher
 		  }
 		};
@@ -517,22 +517,21 @@
 					//set the icon by category
 					var markerIcon;
 					switch(companyCategoryName) {
+						case "Supplier":
+							markerIcon = {icon: redIcon};
+							break;
 						case "Developer":
 							markerIcon = {icon: greenIcon};
 							break;
 						case "Publisher":
 							markerIcon = {};			//use the default icon
 							break;
-						case "Supplier":
-							markerIcon = {icon: redIcon};
-							break;
 					}
 					var markerOptions = Object.assign({}, markerVariables, markerIcon);
 					var marker = new stMarker(location, markerOptions);
-					markers.addLayer(marker);
 
 					//set the markerGroup by type
-					switch(companyCategoryName) {
+					switch(companyTypeName) {
 						case "Developer":
 							markerGroup = developer;
 							break;
@@ -601,6 +600,9 @@
 							break;
 					};
 					marker.addTo(markerGroup);
+
+					
+					markers.addLayer(marker);
 
 					//create & bind popup contents
 					var title = "<div style='font-size: 18px; color: #0078A8;'>";
