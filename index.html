@@ -258,7 +258,15 @@
 		//Create and Add Layer Groups to Map
 		var markers = L.markerClusterGroup.layerSupport({
 				disableClusteringAtZoom: 20,
-				spiderfyDistanceMultiplier: 1,
+/*				iconCreateFunction: function (cluster) {
+					var markers = cluster.getAllChildMarkers();
+					var n = 0;
+					for (var i = 0; i < markers.length; i++) {
+						n += markers[i].number;
+					}
+					return L.divIcon({ html: n, className: 'mycluster', iconSize: L.point(40, 40) });
+				},
+*/				spiderfyDistanceMultiplier: 1,
 				maxClusterRadius: 25,
 				spiderfyOnMaxZoom: true,
 				showCoverageOnHover: false,
@@ -459,130 +467,161 @@
 //		Functions
 /*************************/
 
+		//Extend the base Marker class to include require studio information
+		var stMarker = L.Marker.extend({
+			options: { 
+				stId: 0,
+				stName: '',
+				stUrl: 'http://',
+				stType: 1,
+				stCat: 1,
+				stLoc: '',
+				stLat: 0,
+				stLng: 0
+			}
+		});
+
 //TODO ITEM:
 //Make addPopup, setIcon, setGroup etc functions.
 
 		//Get Markers and add them to the map
 		function getMarkers() {
+
 			$.getJSON("company_get.php", function (data) {
 				for (var i = 0; i < data.length; i++) {
 					var companyId = data[i].id;
 					var companyName = data[i].name;
 					var companyType = data[i].type;
 					var companyTypeName = data[i].type_name;
+					var companyCategory = data[i].category;
+					var companyCategoryName = data[i].category_name;
 					var companyWebsite = data[i].website;
 					var companyAddress = data[i].address.replace(/\&lt;\/br&gt;/ig, '');
 					var companyLat = data[i].lat;
 					var companyLng = data[i].lng;
 					var location = new L.LatLng(companyLat, companyLng);
 					var markerGroup;
-					var markerOptions = {title: companyName};
 
-//TODO ITEM:
-//Move group type icon colour to the database.
+					var markerVariables = {
+						title: data[i].name,
+						stId: data[i].id,
+						stName: data[i].name,
+						stUrl: data[i].website,
+						stType: data[i].type,
+						stCat: data[i].category,
+						stAdd: data[i].address.replace(/\&lt;\/br&gt;/ig, ''),
+						stLat: data[i].lat,
+						stLng: data[i].lng
+					};
 
-					switch(companyTypeName) {
+					//set the icon by category
+					var markerIcon;
+					switch(companyCategoryName) {
 						case "Developer":
-							markerOptions = {icon: greenIcon, title: companyName};
+							markerIcon = {icon: greenIcon};
+							break;
+						case "Publisher":
+							markerIcon = {};			//use the default icon
+							break;
+						case "Supplier":
+							markerIcon = {icon: redIcon};
+							break;
+					}
+					var markerOptions = Object.assign({}, markerVariables, markerIcon);
+					var marker = new stMarker(location, markerOptions);
+					markers.addLayer(marker);
+
+					//set the markerGroup by type
+					switch(companyCategoryName) {
+						case "Developer":
 							markerGroup = developer;
 							break;
 						case "Publisher":
-							markerOptions = {title: companyName};
 							markerGroup = publisher;
 							break;
-						case "Organization":
-							markerOptions = {title: companyName};
-							markerGroup = organization;
+						case "Supplier":
+							markerGroup = supplier;
 							break;
-						case "Mobile":
-							markerOptions = {icon: greenIcon, title: companyName};
+						case "Supplier":
+							markerGroup = supplier;
+							break;
+						case "Audio/Music":
+							markerGroup = audio;
+							break;
+						case "Animation/Video":
+							markerGroup = anim;
+							break;
+						case "Brand/Marketing":
+							markerGroup = brand;
+							break;
+						case "Locatization":
+							markerGroup = loc;
+							break;
+						case "Testing":
+							markerGroup = qa;
+							break;
+						case "VFX/Lighting":
+							markerGroup = vfx;
+							break;
+						case "UI/UX":
+							markerGroup = ui;
+							break;
+						case "Design":
+							markerGroup = design;
+							break;
+						case "Concept":
+							markerGroup = concept;
+							break;
+						case "Env & Character":
+							markerGroup = art;
+							break;
+						case "Co-Development":
+							markerGroup = codev;
+							break;
+						case "Developer":
+							markerGroup = developer;
+							break;
+						case "Mobile Devs":
 							markerGroup = mobile;
 							break;
 						case "Virtual Reality":
-							markerOptions = {icon: greenIcon, title: companyName};
 							markerGroup = vr;
 							break;
-						case "Developer and Publisher":
-							markerOptions = {icon: greenIcon, title: companyName};
-							markerGroup = selfpub;
-							break;
 						case "Online":
-							markerOptions = {icon: greenIcon, title: companyName};
 							markerGroup = online;
 							break;
-						case "Supplier":
-							markerOptions = {icon: redIcon, title: companyName};
-							markerGroup = supplier;
+						case "Self Publishing":
+							markerGroup = selfpub;
 							break;
-						case "Audio & Music":
-							markerOptions = {icon: redIcon, title: companyName};
-							markerGroup = audio;
+						case "Organization":
+							markerGroup = organization;
 							break;
-						case "Animation & Video":
-							markerOptions = {icon: redIcon, title: companyName};
-							markerGroup = anim;
+						case "Publisher":
+							markerGroup = publisher;
 							break;
-						case "Brand & Marketing":
-							markerOptions = {icon: redIcon, title: companyName};
-							markerGroup = brand;
-							break;
-						case "Localization & Writing":
-							markerOptions = {icon: redIcon, title: companyName};
-							markerGroup = loc;
-							break;
-						case "QA & Testing":
-							markerOptions = {icon: redIcon, title: companyName};
-							markerGroup = qa;
-							break;
-						case "VFX & Lighting":
-							markerOptions = {icon: redIcon, title: companyName};
-							markerGroup = vfx;
-							break;
-						case "UI & Player Experience":
-							markerOptions = {icon: redIcon, title: companyName};
-							markerGroup = ui;
-							break;
-						case "Game & Level Design":
-							markerOptions = {icon: redIcon, title: companyName};
-							markerGroup = design;
-							break;
-						case "Concept & Illustration":
-							markerOptions = {icon: redIcon, title: companyName};
-							markerGroup = concept;
-							break;
-						case "Environment & Character":
-							markerOptions = {icon: redIcon, title: companyName};
-							markerGroup = art;
-							break;
-						case "Full Service & Co-Developmeny":
-							markerOptions = {icon: redIcon, title: companyName};
-							markerGroup = codev;
-							break;
-					}
-					var marker = new L.Marker(location, markerOptions);
-					markers.addLayer(marker);
+					};
 					marker.addTo(markerGroup);
 
-					//create popup contents
-					var title = "<div style='font-size: 18px; color: #0078A8;'>";	
-					if (companyWebsite.length > 0) {
-						title = title +"<a href='"+ companyWebsite +"' target='_blank'>"+ companyName + "</a>";
+					//create & bind popup contents
+					var title = "<div style='font-size: 18px; color: #0078A8;'>";
+					if (marker.options.stUrl) {
+						title = title +"<a href='"+ marker.options.stUrl +"' target='_blank'>"+ marker.options.stName + "</a>";
 					} else {
-						title = title + companyName;
+						title = title + marker.stName;
 					}
 					title = title +"</div>";
-					var address = "<div style='font-size: 14px;'>"+ companyAddress +"</div>";				
+					var address = "<div style='font-size: 14px;'>"+ marker.options.stAdd +"</div>";				
 					var editButton = '</br><form id="inputform" enctype="multipart/form-data">'+
 						'<input style="display: none;" type="text" id="markerId" name="markerId" value="'+ markers.getLayerId(marker) +'"/>'+
-						'<input style="display: none;" type="text" id="companyId" name="companyId" value="'+ companyId +'"/>'+
-						'<input style="display: none;" type="text" id="companyName" name="companyName" value="'+ companyName +'"/>'+
-						'<input style="display: none;" type="text" id="companyWebsite" name="companyWebsite" value="'+ companyWebsite +'"/>'+
-						'<input style="display: none;" type="text" id="companyAddress" name="companyAddress" value="'+ companyAddress +'"/>'+
-						'<input style="display: none;" type="text" id="companyType" name="companyType" value="'+ companyType +'"/>'+
-						'<input style="display: none;" type="text" id="lat" name="lat" value="'+ companyLat +'" />'+
-						'<input style="display: none;" type="text" id="lng" name="lng" value="'+ companyLng +'" />'+
+						'<input style="display: none;" type="text" id="companyId" name="companyId" value="'+ marker.options.stId +'"/>'+
+						'<input style="display: none;" type="text" id="companyName" name="companyName" value="'+ marker.options.stName +'"/>'+
+						'<input style="display: none;" type="text" id="companyWebsite" name="companyWebsite" value="'+ marker.options.stUrl +'"/>'+
+						'<input style="display: none;" type="text" id="companyAddress" name="companyAddress" value="'+ marker.options.stAdd +'"/>'+
+						'<input style="display: none;" type="text" id="companyType" name="companyType" value="'+ marker.options.stTyp +'"/>'+
+						'<input style="display: none;" type="text" id="lat" name="lat" value="'+ marker.options.stLat +'" />'+
+						'<input style="display: none;" type="text" id="lng" name="lng" value="'+ marker.options.stLng +'" />'+
 						'<div class="row-fluid">'+
-						'<div class="span" style="text-align:center;"><button type="button" class="btn btn-primary" onclick="editCompany('+ markers.getLayerId(marker) +', '+ companyId +', \''+ companyName.replace(/'/ig, "\\'") +'\', \''+ companyWebsite +'\', \''+ companyAddress.replace(/\&apos;/ig, "\\'") +'\', '+ companyType +', '+ companyLat +', '+ companyLng +')">Edit</button></div>'+
+						'<div class="span" style="text-align:center;"><button type="button" class="btn btn-primary" onclick="editCompany('+ markers.getLayerId(marker) +')">Edit</button></div>'+
 						'</div>'+
 						'</form>';
 					marker.bindPopup("<div style='text-align: center; margin-left: auto; margin-right: auto;'>"+ title + address + editButton +"</div>", {maxWidth: '400'});
@@ -661,10 +700,6 @@
 			markers.clearLayers();
 			markerEdit.clearLayers();
 			getMarkers();
-			markerName = "";
-			markerWebsite = "";
-			markerAddressText = "";
-			markerType = "";
 		}
 
 		//Start Edit Mode
@@ -680,17 +715,18 @@
 			markers.clearLayers();
 			markerEdit.clearLayers();
 			getMarkers();
-			markerName = "";
-			markerWebsite = "";
-			markerAddressText = "";
-			markerType = "";
 		}
 
-		//Global variables to remember the Form data between clicks
-		var markerName = "";
-		var markerWebsite = "";
-		var markerAddressText = "";
-		var markerType = "";
+		function setNewMarkerStats() {
+			markerEdit.eachLayer(function(m){
+				m.options.stUrl = document.getElementById("website").value;
+				m.options.stName = document.getElementById("name").value;
+				m.options.stAdd = document.getElementById("location").value;
+				m.options.stType = document.getElementById("type").value;
+				m.options.stLat = document.getElementById("lat").value;
+				m.options.stLng = document.getElementById("lng").value;
+			});
+		}
 
 		// Reopen popups and update LatLng data
 		function setNewMarkerPosition(e) {
@@ -698,13 +734,13 @@
 			markerEdit.eachLayer(function(m){
 				m.setLatLng(latlng);
 				m.openPopup();
+				document.getElementById("website").value = m.options.stUrl;
+				document.getElementById("name").value = m.options.stName;
+				document.getElementById("location").value = m.options.stAdd;
+				document.getElementById("type").value = m.options.stType;
+				document.getElementById("lat").value = latlng.lat.toFixed(6);
+				document.getElementById("lng").value = latlng.lng.toFixed(6);
 			});
-			document.getElementById("website").value = markerWebsite;
-			document.getElementById("name").value = markerName;
-			document.getElementById("location").value = markerAddressText;
-			document.getElementById("type").value = markerType;
-			document.getElementById("lat").value = latlng.lat.toFixed(6);
-			document.getElementById("lng").value = latlng.lng.toFixed(6);
 			updateAddress(latlng.lat.toFixed(6), latlng.lng.toFixed(6));
 			map.panTo(latlng);
 		}
@@ -724,10 +760,10 @@
 							marker = markerEdit.getLayer(markerId);
 							marker.setLatLng(latlng)
 							marker.openPopup();
-							document.getElementById("website").value = markerWebsite;
-							document.getElementById("name").value = markerName;
-							document.getElementById("location").value = markerAddressText;
-							document.getElementById("type").value = markerType;
+							document.getElementById("website").value = marker.options.stUrl;
+							document.getElementById("name").value = marker.options.stname;
+							document.getElementById("location").value = marker.options.stAdd;
+							document.getElementById("type").value = marker.options.stType;
 							document.getElementById("lat").value = data[0].lat;
 							document.getElementById("lng").value = data[0].lon;
 							updateAddress(data[0].lat, data[0].lon);
@@ -787,20 +823,20 @@
 					'<div class="form-group" style="margin-bottom:8px">'+
 						'<div class="input-group">'+
 							'<label class="input-group-addon" id="basic-addon3">Name</label>'+
-							'<input type="text" class="form-control" placeholder="Required" id="name" onchange="markerName = this.value" />'+
+							'<input type="text" class="form-control" placeholder="Required" id="name" onchange="setNewMarkerStats()" />'+
 						'</div>'+
 					'</div>'+
 					'<div class="form-group" style="margin-bottom:8px">'+
 						'<div class="input-group">'+
 							'<label class="input-group-addon" id="basic-addon3">URL</label>'+
-							'<input type="text" class="form-control" placeholder="http:// (Required)" id="website" onchange="markerWebsite = this.value" />'+
+							'<input type="text" class="form-control" placeholder="http:// (Required)" id="website" onchange="setNewMarkerStats()" />'+
 						'</div>'+
 					'</div>'+
 					'<form id="#addressLookup">'+
 						'<div class="form-group" style="margin-bottom:8px">'+
 							'<div class="input-group">'+
 								'<label class="input-group-addon" id="basic-addon3">Addr.</label>'+
-								'<input type="text" class="form-control" placeholder="Enter Address" id="location" onchange="markerAddressText = this.value"/>'+
+								'<input type="text" class="form-control" placeholder="Enter Address" id="location" onchange="setNewMarkerStats()"/>'+
 								'<input style="display: none;" type="text" id="markerId" value="'+ markerEdit.getLayerId(marker) +'" aria-hidden="true"/>'+
 								'<span class="input-group-btn" >'+
 									'<button class="btn btn-secondary" onclick="addressLookup(); return false;" style="padding: 5px 10px 5px 10px; "><span class="oi oi-map-marker oi-size-lg" style="padding-top: 2px; font-size: 20px; color: #ffffff;" aria-hidden="true"></span></button>'+
@@ -808,16 +844,10 @@
 							'</div>'+
 						'</div>'+
 					'</form>'+
-					/*
-					'<div class="form-group">'+
-						'<label for="address">Current Location:</label></br>'+
-						'<input class="form-control" type="text" id="location" readonly/>'+
-					'</div>'+
-					*/
 					'<div class="form-group" style="margin-bottom:8px">'+
 						'<div class="input-group">'+
 							'<label class="input-group-addon" id="basic-addon3">Type</label>'+
-							'<select class="form-control" id="type" onchange="markerType = this.value">'+
+							'<select class="form-control" id="type" onchange="setNewMarkerStats()">'+
 								'<optgroup label="Supplier">'+
 									'<option value=1>Supplier</option>'+
 									'<option value=9>Audio & Music</option>'+
@@ -860,38 +890,57 @@
 			map.addEventListener('click', setNewMarkerPosition);
 		}
 
+		function clone(obj) {
+			if (null == obj || "object" != typeof obj) return obj;
+			var copy = obj.constructor();
+			for (var attr in obj) {
+				if (obj.hasOwnProperty(attr)) copy[attr] = obj[attr];
+			}
+			return copy;
+		}
+
 		//Edit Company
-		function editCompany(markerId, companyId, companyName, companyWebsite, companyAddress, companyType, lat, lng) {
-			//make a new marker
-			markerName = companyName;
-			markerWebsite = companyWebsite;
-			markerAddressLookup = companyAddress;
-			markerType = companyType;
+		function editCompany(markerId) {
 
-			//remove the old marker
-			markers.removeLayer(markers.getLayer(markerId));
+			var om = markers.getLayer(markerId);
 
-			//create a new marker
-			marker = new L.Marker(new L.LatLng(lat, lng), {icon: yellowIcon, draggable: true});
-			markerEdit.addLayer(marker);
+			var location = new L.LatLng(om.options.stLat, om.options.stLng);
+			var markerOptions = {
+				location,
+				icon: yellowIcon,
+				draggable: true,
+				title: om.options.title,
+				stId: om.options.stId,
+				stName: om.options.stName,
+				stUrl: om.options.stUrl,
+				stType: om.options.stType,
+				stCat: om.options.stCat,
+				stAdd: om.options.stAdd,
+				stLat: om.options.stLat,
+				stLng: om.options.stLng
+			};
+			
+			var marker = new stMarker(location, markerOptions);		//Make a new Marker
+			markers.removeLayer(om);								//Remove the old marker
+			markerEdit.addLayer(marker);							//Add new marker to non-clustering map group
 
 			var editForm =  '<form id="regexpForm">'+
 					'<div class="form-group" style="margin-bottom:8px">'+
 						'<h5>Edit Company</h5>'+
 					'</div>'+
 					'<div class="form-group" style="margin-bottom:8px">'+
-						'<input style="display: none;" type="text" id="companyId" value="'+ companyId +'" aria-hidden="true"/>'+
+						'<input style="display: none;" type="text" id="companyId" value="'+ marker.options.stId +'" aria-hidden="true"/>'+
 						'<div class="input-group">'+
 							'<label class="input-group-addon" id="basic-addon3">Name</label>'+
-							'<input type="text" class="form-control" placeholder="Required" id="name" value="'+ companyName +'" onchange="markerName = this.value"/>'+
+							'<input type="text" class="form-control" placeholder="Required" id="name" value="'+ marker.options.stName +'" onchange="setNewMarkerStats()"/>'+
 							'<span class="input-group-btn">'+
 							'<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'+
 								'<span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:2px; font-size: 20px; color: #ffffff;" aria-hidden="true"></span>'+
 							'</button>'+
 
 								'<div class="dropdown-menu">'+
-									'<a class="dropdown-item" href="https://www.google.com/search?q='+ companyName +'" target="_blank" style="padding: 5px 10px 5px 10px; "><span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:2px; font-size: 20px; color: #6c757d;" aria-hidden="true"></span> Search Google</a>'+
-									'<a class="dropdown-item" href="https://www.google.com/maps/search/'+ companyName +'" target="_blank" style="padding: 5px 10px 5px 10px; "><span class="oi oi-map-marker oi-size-lg" style="padding-top: 2px; font-size: 20px; color: #6c757d;" aria-hidden="true"></span> Search Google Maps</a>'+
+									'<a class="dropdown-item" href="https://www.google.com/search?q='+ marker.options.stName +'" target="_blank" style="padding: 5px 10px 5px 10px; "><span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:2px; font-size: 20px; color: #6c757d;" aria-hidden="true"></span> Search Google</a>'+
+									'<a class="dropdown-item" href="https://www.google.com/maps/search/'+ marker.options.stName +'" target="_blank" style="padding: 5px 10px 5px 10px; "><span class="oi oi-map-marker oi-size-lg" style="padding-top: 2px; font-size: 20px; color: #6c757d;" aria-hidden="true"></span> Search Google Maps</a>'+
 								'</div>'+
 							'</span>'+
 						'</div>'+
@@ -899,9 +948,9 @@
 					'<div class="form-group" style="margin-bottom:8px">'+
 						'<div class="input-group">'+
 							'<label class="input-group-addon" id="basic-addon3">URL</label>'+
-							'<input type="text" class="form-control" placeholder="http://" id="website" value="'+ companyWebsite +'" onchange="markerWebsite = this.value"/>'+
+							'<input type="text" class="form-control" placeholder="http://" id="website" value="'+ marker.options.stUrl +'" onchange="setNewMarkerStats()"/>'+
 							'<span class="input-group-btn">'+
-								'<a class="btn btn-secondary" href="'+ companyWebsite +'" target="_blank" style="padding: 5px 10px 5px 10px; "><span class="oi oi-external-link oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></a>'+
+								'<a class="btn btn-secondary" href="'+ marker.options.stUrl +'" target="_blank" style="padding: 5px 10px 5px 10px; "><span class="oi oi-external-link oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></a>'+
 							'</span>'+
 						'</div>'+
 					'</div>'+
@@ -909,7 +958,7 @@
 						'<div class="form-group" style="margin-bottom:8px">'+
 							'<div class="input-group">'+
 								'<label class="input-group-addon" id="basic-addon3">Addr.</label>'+
-								'<input type="text" class="form-control" placeholder="Enter Address" id="location" value="'+ companyAddress +'" onchange="markerAddressText = this.value"/>'+
+								'<input type="text" class="form-control" placeholder="Enter Address" id="location" value="'+ marker.options.stAdd +'" onchange="setNewMarkerStats()"/>'+
 								'<input style="display: none;" type="text" id="markerId" value="'+ markerEdit.getLayerId(marker) +'" aria-hidden="true"/>'+
 								'<span class="input-group-btn">'+
 									'<button class="btn btn-secondary" onclick="addressLookup(); return false;" style="padding: 5px 10px 5px 10px; "><span class="oi oi-map-marker oi-size-lg" style="padding-top: 2px; font-size: 20px; color: #ffffff;" aria-hidden="true"></span></button>'+
@@ -917,21 +966,10 @@
 							'</div>'+
 						'</div>'+
 					'</form>'+
-					/*
-					'<div class="form-group">'+
-						'<label for="location">Address:</label><br>'+
-						'<div class="input-group">'+
-							'<input class="form-control " type="text" id="location" value="'+ companyAddress +'" readonly/>'+
-							'<span class="input-group-btn">'+
-								'<a class="btn btn-secondary" href="https://www.google.com/maps/search/'+ companyAddress +'" target="_blank" ><span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></a>'+
-							'</span>'+
-						'</div>'+
-					'</div>'+
-					*/
 					'<div class="form-group" style="margin-bottom:8px">'+
 						'<div class="input-group">'+
 							'<label class="input-group-addon" id="basic-addon3">Type</label>'+
-							'<select class="form-control" id="type" onchange="markerType = this.value">'+
+							'<select class="form-control" id="type" onchange="setNewMarkerStats()">'+
 								'<optgroup label="Supplier">'+
 									'<option value=1>Supplier</option>'+
 									'<option value=9>Audio & Music</option>'+
@@ -956,8 +994,8 @@
 									'<option value=3>Organization</option>'+
 							'</select>'+
 						'</div>'+
-						'<input style="display: none;" type="text" id="lat" value="'+lat+'" aria-hidden="true"/>'+
-						'<input style="display: none;" type="text" id="lng" value="'+lng+'" aria-hidden="true"/>'+
+						'<input style="display: none;" type="text" id="lat" value="'+marker.options.stLat+'" aria-hidden="true"/>'+
+						'<input style="display: none;" type="text" id="lng" value="'+marker.options.stLng+'" aria-hidden="true"/>'+
 					'</div>'+
 					'<div class="modal-footer" style="padding: 0px; border: 0px;">'+
 						'<button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteCompanyModal">Delete</button>'+
@@ -968,9 +1006,9 @@
 			marker.bindPopup(editForm,{autoClose: false, closeOnClick: false, closeButton: false, autoPanPadding: 5, keepInView: false, minWidth: 300, maxWidth: 800});
 			marker.on('click', function(){ marker.openPopup(); });
 			marker.openPopup();
-			map.panTo(new L.LatLng(lat,lng));
+			map.panTo(new L.LatLng(marker.options.stLat,marker.options.stLng));
 			initEdit(marker);
-			document.getElementById('type').value = companyType;
+			document.getElementById('type').value = marker.options.stType;
 		}
 
 		//Name Validation
@@ -987,7 +1025,6 @@
 		function validURL(testUrl) {
 			var pattern = new RegExp('^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})).?)(?::\d{2,5})?(?:[/?#]\S*)?$'); // fragment locater
 			if(!pattern.test(testUrl)) {
-				//console.log(testUrl+' failed to validate')
 				alert("Please enter a valid URL");
 				return false;
 			} else {
@@ -1071,8 +1108,6 @@
 				cancelEdit();
 				$("#loading-mask").hide();
 				$("#loading").hide();
-//				$("#insertSuccessModal").show();
-//				$("#insertSuccessModal").modal({ show: 'true' });
 				$('#insertSuccessModal').modal('show');
 			  }
 			});
@@ -1085,7 +1120,6 @@
 			$("#loading").show();
 			var id = $("#companyId").val();
 			var dataString = 'id='+ id;
-			//console.log(dataString);
 			$.ajax({
 			  type: "POST",
 			  url: "company_remove.php",

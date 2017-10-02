@@ -1,9 +1,21 @@
 <?php
 $db = new PDO('sqlite:data.sqlite');
 
-$sql = "SELECT company.id as id, company.name as name, company.type, companyType.name as type_name, website, address, lat, lng
-	FROM company
-	INNER JOIN companyType ON company.type=companyType.id
+$sql = "SELECT		com.id AS id,
+			com.name AS name,
+			com.type,
+			comTyp.name AS type_name,
+			comTyp.category AS category,
+			typCat.name AS category_name,
+			website,
+			address,
+			lat,
+			lng
+	FROM company AS com
+	INNER JOIN companyType AS comTyp
+		ON com.type=comTyp.id
+	INNER JOIN typeCategory AS typCat
+		ON comTyp.category=typCat.id
 	WHERE lat IS NOT NULL AND lat <> '' AND status>=0;";
 error_log($sql);
 $rs = $db->query($sql);
