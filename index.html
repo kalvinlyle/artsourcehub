@@ -28,11 +28,11 @@
 			integrity="sha512-M2wvCLH6DSRazYeZRIm1JnYyh22purTM+FDB5CsyxtQJYeKq83arPe5wgbNmcFXGqiSH2XR8dT/fJISVA1r/zQ=="
 			crossorigin=""/>
 <!--
-		<link rel="stylesheet" href="leaflet.markercluster/MarkerCluster.css" />
-		<link rel="stylesheet" href="leaflet.markercluster/MarkerCluster.Default.css" />
--->
+		<link rel="stylesheet" href="leaflet-markercluster/MarkerCluster.css" />
+		<link rel="stylesheet" href="leaflet-markercluster/MarkerCluster.Default.css" />
 		<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.0.6/dist/MarkerCluster.css" />
-		<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.0.6/dist/MarkerCluster.Default.css" />
+-->
+		<link rel="stylesheet" href="leaflet-markercluster/MarkerCluster-Default.css" />
 		<link rel="stylesheet" href="leaflet.groupedlayercontrol/leaflet.groupedlayercontrol.min.css" />
 		<link rel="stylesheet" href="leaflet-search/dist/leaflet-search.src.css" />
 
@@ -258,15 +258,28 @@
 		//Create and Add Layer Groups to Map
 		var markers = L.markerClusterGroup.layerSupport({
 				disableClusteringAtZoom: 20,
-/*				iconCreateFunction: function (cluster) {
+				iconCreateFunction: function (cluster) {
 					var markers = cluster.getAllChildMarkers();
-					var n = 0;
+					var s = 0;
+					var d = 0;
+					var p = 0;
+					var z = 0;
 					for (var i = 0; i < markers.length; i++) {
-						n += markers[i].number;
+						//console.log(markers[i]);
+						if ( markers[i].options.stCat == '1' ) { s++; }
+						if ( markers[i].options.stCat == '2' ) { d++; }
+						if ( markers[i].options.stCat == '3' ) { p++; }
 					}
-					return L.divIcon({ html: n, className: 'mycluster', iconSize: L.point(40, 40) });
+					z = s + d + p;
+					var iconType = 'custom-cluster-';
+					if ( s > 0 ) { iconType = iconType +'s'; }
+					if ( d > 0 ) { iconType = iconType +'d'; }
+					if ( p > 0 ) { iconType = iconType +'p'; }
+					if ( z < 100 ) { return L.divIcon({ html: s + d + p, className: 'custom-cluster-sm '+ iconType, iconSize: L.point(30, 30) }); }
+					else if ( z > 200 ) { return L.divIcon({ html: s + d + p, className: 'custom-cluster-lg '+ iconType, iconSize: L.point(40, 40) }); }
+					else {return L.divIcon({ html: s + d + p, className: 'custom-cluster '+ iconType, iconSize: L.point(35, 35) }); }
 				},
-*/				spiderfyDistanceMultiplier: 1,
+				spiderfyDistanceMultiplier: 1,
 				maxClusterRadius: 25,
 				spiderfyOnMaxZoom: true,
 				showCoverageOnHover: false,
@@ -645,7 +658,7 @@
 		function addcss(css){
 			var head = document.getElementsByTagName('head')[0];
 			var s = document.createElement('link');
-			s.setAttribute('type', 'text/css');
+			//s.setAttribute('type', 'text/css');
 			s.setAttribute('rel', 'stylesheet');
 			s.setAttribute('href', css);
 			head.appendChild(s);
@@ -653,8 +666,8 @@
 
 		//Start Add Mode
 		function initRegistration() {
-			$('link[rel=stylesheet][href*="MarkerCluster.Default.css"]').remove();
-			addcss("leaflet-markercluster/MarkerCluster.Disabled.css");
+			//$('link[rel=stylesheet][href*="MarkerCluster-Default.css"]').remove();
+			addcss("leaflet-markercluster/MarkerCluster-Disabled.css");
 			//marker.on('dragend', setNewMarkerPosition);
 			map.addEventListener('click', addMarker);
 			markers.options.zoomToBoundsOnClick = false;			//disable clusterclick
@@ -671,8 +684,8 @@
 
 		//Start Edit Mode
 		function initEdit(marker) {
-			$('link[rel=stylesheet][href*="MarkerCluster.Default.css"]').remove();
-			addcss("leaflet-markercluster/MarkerCluster.Disabled.css");
+			//$('link[rel=stylesheet][href*="MarkerCluster-Default.css"]').remove();
+			addcss("leaflet-markercluster/MarkerCluster-Disabled.css");
 			marker.on('dragend', setNewMarkerPosition);
 			map.addEventListener('click', setNewMarkerPosition);		//Clicking on the map will set newMarker positions
 			markers.options.zoomToBoundsOnClick = false;			//disable clusterclick
@@ -691,8 +704,8 @@
 //It must be possible to combine cancelRegistration and cancelEdit functions into one
 
 		function cancelRegistration() {
-			$('link[rel=stylesheet][href~="MarkerCluster.Disabled.css"]').remove();
-			addcss("leaflet-markercluster/MarkerCluster.Default.css");
+			$('link[rel=stylesheet][href*="MarkerCluster-Disabled.css"]').remove();
+			//addcss("leaflet-markercluster/MarkerCluster-Default.css");
 			$('#map').css('cursor', '');
 			map.removeEventListener('click', addMarker);
 			map.removeEventListener('click', setNewMarkerPosition);
@@ -706,8 +719,8 @@
 
 		//Start Edit Mode
 		function cancelEdit() {
-			$('link[rel=stylesheet][href~="MarkerCluster.Disabled.css"]').remove();
-			addcss("leaflet-markercluster/MarkerCluster.Default.css");
+			$('link[rel=stylesheet][href*="MarkerCluster-Disabled.css"]').remove();
+			//addcss("leaflet-markercluster/MarkerCluster-Default.css");
 			$('#map').css('cursor', '');
 			map.options.closePopupOnClick = true;
 			map.removeEventListener('click', setNewMarkerPosition);
@@ -749,8 +762,9 @@
 
 		function addressLookup() {
 			var markerId = $("#markerId").val();
-			if (markerAddressText !== "") {
-				var addressURL =  'http://nominatim.openstreetmap.org/search?q='+ markerAddressText +'&format=json&zoom=1&addressdetails=1&accept-language=en';
+			var marker = markerEdit.getLayer(markerId);
+			if (marker.options.stAdd !== "") {
+				var addressURL =  'http://nominatim.openstreetmap.org/search?q='+ marker.options.stAdd +'&format=json&zoom=1&addressdetails=1&accept-language=en';
 				$.ajax({
 					type: "GET",
 					url: addressURL,
@@ -759,11 +773,10 @@
 						if (data.length > 0) {
 							var latlng = new L.LatLng(data[0].lat,data[0].lon);
 							map.panTo(latlng);
-							marker = markerEdit.getLayer(markerId);
 							marker.setLatLng(latlng)
 							marker.openPopup();
 							document.getElementById("website").value = marker.options.stUrl;
-							document.getElementById("name").value = marker.options.stname;
+							document.getElementById("name").value = marker.options.stName;
 							document.getElementById("location").value = marker.options.stAdd;
 							document.getElementById("type").value = marker.options.stType;
 							document.getElementById("lat").value = data[0].lat;

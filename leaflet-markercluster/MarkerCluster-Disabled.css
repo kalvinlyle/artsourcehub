@@ -1,0 +1,53 @@
+.custom-cluster-s {
+	background-image: url("../assets/images/grey-cluster-s.png");
+	background-position: center;
+	}
+.custom-cluster-d {
+	background-image: url("../assets/images/grey-cluster-d.png");
+	background-position: center;
+	}
+.custom-cluster-p {
+	background-image: url("../assets/images/grey-cluster-p.png");
+	background-position: center;
+	}
+.custom-cluster-sd {
+	background-image: url("../assets/images/grey-cluster-sd.png");
+	background-position: center;
+	}
+.custom-cluster-sp {
+	background-image: url("../assets/images/grey-cluster-sp.png");
+	background-position: center;
+	}
+.custom-cluster-dp {
+	background-image: url("../assets/images/grey-cluster-dp.png");
+	background-position: center;
+	}
+.custom-cluster-sdp {
+	background-image: url("../assets/images/grey-cluster-sdp.png");
+	background-position: center;
+	}
+
+.custom-cluster {
+	background-clip: padding-box;
+	background-size: 37px 37px;
+    text-align: center;
+	padding-top: 12px;
+	border-radius: 20px;
+	font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+	}
+.custom-cluster-sm {
+	background-clip: padding-box;
+	background-size: 30px 30px;
+    text-align: center;
+	padding-top: 9px;
+	border-radius: 20px;
+	font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+	}
+.custom-cluster-lg {
+	background-clip: padding-box;
+	background-size: 40px 40px;
+    text-align: center;
+	padding-top: 14px;
+	border-radius: 20px;
+	font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+	}
