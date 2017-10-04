@@ -1,3 +1,4 @@
 *.bak
 *.sqlite
 *.sqlite-journal
+feedback/
