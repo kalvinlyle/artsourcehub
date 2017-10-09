@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<!-- Global Site Tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-106586544-1"></script>
+		<script>
+			//check for developer cookie set by https://chrome.google.com/webstore/detail/developer-cookie
+			var devCookie = "ChromeDeveloperCookie=123";
+			if (document.cookie.indexOf(devCookie) == -1) {
+				window.dataLayer = window.dataLayer || [];
+				function gtag(){dataLayer.push(arguments)};
+				gtag('js', new Date());
+
+				gtag('config', 'UA-106586544-1');
+			} else {
+				console.log('Developer mode Activated');
+			}
+		</script>
+
+		<title>Art Source Map</title>
+
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<meta name="description" content="Map of specialist video game outsourcing companies" />
+		<meta name="keywords" content="leaflet, outsource, map" />
+		<meta name="author" content="Kalvin Lyle" />
+
+		<!-- favicon -->
+		<link type="text/css" rel="shortcut icon" type="image/x-icon" href="assets/brand/favicon.ico">
+
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" 
+			integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M"
+			crossorigin="anonymous">
+		<link href="open-iconic/font/css/open-iconic-bootstrap.css" rel="stylesheet">
+
+	</head>
+
+	<script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+	<body>
+
+	<!-- Nav -->
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTogglerDemo03" aria-controls="navbarTogglerDemo03" aria-expanded="false" aria-label="Toggle navigation">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<a class="navbar-brand" href="#">Art Source Hub</a>
+		<span id="studio-counter" class="text-light"></span>
+	</nav>
+
+	<!-- Modal:deleteCompany -->
+	<div class="modal fade" id="deleteCompanyModal" tabindex="-1" role="dialog" aria-labelledby="deleteCompanyModal" aria-hidden="true">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Remove the Studio from the map?</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>Removing a Company from the Map is serios business.</p>
+					<p>Are you sure you want to Delete the Company from the Map?</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" onclick="$('#deleteCompanyModal').modal('hide'); deleteCompany(); return false;" class="btn btn-danger" data-dismiss="modal">Delete!</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal:insertSuccessModal -->
+	<div class="modal fade" id="insertSuccessModal" tabindex="-1" role="dialog">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title">Success</h5>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+						<span aria-hidden="true">&times;</span>
+					</button>
+				</div>
+				<div class="modal-body">
+					<p>Thanks for your contribution to the Map!</p>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- jQuery Scripts -->
+	<div id="blocklist" class="d-inline-flex flex-wrap" ></div>
+
+	<!-- jQuery Scripts -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+	<!-- Bootstrap Scripts -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" 
+		integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4"
+		crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js"	
+		integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1"
+		crossorigin="anonymous"></script>
+
+	<!-- Main Script -->
+	<script type="application/javascript">
+
+		var studioData;
+		var i = 0;
+		var remainingStudios;
+		
+		//Get Markers the first time the page is loaded and set the initial view
+		$(document).ready(function() {
+			$.ajaxSetup({cache:false});
+			getStudioData();
+		});
+
+/*************************/
+//		Functions
+/*************************/
+
+		//Get Markers and add them to the map
+		function getStudioData() {
+			$.ajax({
+				type: "GET",
+				url: "company_getall.php",
+				contentType: "application/json; charset=utf-8",
+				dataType: "json",
+				success: function(data) {
+					studioData = data;
+					remainingStudios = data.length;
+					while (i < 10) {
+						getStudio(i);
+						i++;
+					}
+				}
+			});
+		}
+
+		function getStudio(i) {
+			var companyId = studioData[i].id;
+			var companyName = studioData[i].name;
+			var companyStatus = studioData[i].status;
+			var companyType = studioData[i].type;
+			var companyTypeName = studioData[i].type_name;
+			var companyCategory = studioData[i].category;
+			var companyCategoryName = studioData[i].category_name;
+			var companyWebsite = studioData[i].website;
+			var companyAddress = studioData[i].address.replace(/\&lt;\/br&gt;/ig, '');
+			var companyLat = studioData[i].lat;
+			var companyLng = studioData[i].lng;
+			var markerGroup;
+
+			var editForm =  '<form id="companyEditForm">'+
+			'<div class="form-group" style="margin-bottom:8px">'+
+				'<input style="display: none;" type="text" id="companyStatus" value="'+companyStatus+'" />'+
+				'<input style="display: none;" type="text" id="companyId" value="'+companyId+'" />'+
+				'<div class="input-group">'+
+					'<label class="input-group-addon" id="basic-addon3">Name</label>'+
+					'<input type="text" class="form-control" placeholder="Required" id="'+companyId+'-name" value="'+ companyName +'"/>'+
+					'<span class="input-group-btn">'+
+					'<button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">'+
+						'<span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:2px; font-size: 20px; color: #ffffff;" aria-hidden="true"></span>'+
+					'</button>'+
+
+						'<div class="dropdown-menu">'+
+							'<a class="dropdown-item" href="https://www.google.com/search?q='+ companyName +'" target="_blank" style="padding: 5px 10px 5px 10px; "><span class="oi oi-magnifying-glass oi-size-lg" style="padding-top:2px; font-size: 20px; color: #6c757d;" aria-hidden="true"></span> Search Google</a>'+
+							'<a class="dropdown-item" href="https://www.google.com/maps/search/'+ companyName +'" target="_blank" style="padding: 5px 10px 5px 10px; "><span class="oi oi-map-marker oi-size-lg" style="padding-top: 2px; font-size: 20px; color: #6c757d;" aria-hidden="true"></span> Search Google Maps</a>'+
+						'</div>'+
+					'</span>'+
+				'</div>'+
+			'</div>'+
+			'<div class="form-group" style="margin-bottom:8px">'+
+				'<div class="input-group">'+
+					'<label class="input-group-addon" id="basic-addon3">URL</label>'+
+					'<input type="text" class="form-control" placeholder="http://" id="'+companyId+'-website" value="'+ companyWebsite +'"/>'+
+					'<span class="input-group-btn">'+
+						'<a class="btn btn-secondary" href="'+ companyWebsite +'" target="_blank" style="padding: 5px 10px 5px 10px; "><span class="oi oi-external-link oi-size-lg" style="padding-top:5px; font-size: 18px; color: #ffffff;" aria-hidden="true"></span></a>'+
+					'</span>'+
+				'</div>'+
+			'</div>'+
+			'<form>'+
+				'<div class="form-group" style="margin-bottom:8px">'+
+					'<div class="input-group">'+
+						'<label class="input-group-addon" id="basic-addon3">Addr.</label>'+
+						'<input type="text" class="form-control" placeholder="Enter Address" id="'+companyId+'-address" value="'+ companyAddress +'"/>'+
+						'<span class="input-group-btn">'+
+							'<button class="btn btn-secondary" onclick="addressLookup('+companyId+'); return false;" style="padding: 5px 10px 5px 10px; "><span class="oi oi-map-marker oi-size-lg" style="padding-top: 2px; font-size: 20px; color: #ffffff;" aria-hidden="true"></span></button>'+
+						'</span>'+
+					'</div>'+
+				'</div>'+
+				'<div class="form-group" style="margin-bottom:8px">'+
+					'<div class="input-group">'+
+						'<label class="input-group-addon" id="basic-addon3">Type</label>'+
+						'<select class="form-control" id="'+companyId+'-type">'+
+							'<optgroup label="Supplier">'+
+								'<option value=1>Supplier</option>'+
+								'<option value=9>Audio & Music</option>'+
+								'<option value=10>Animation & Video</option>'+
+								'<option value=11>Brand & Marketing</option>'+
+								'<option value=12>Localization & Writing</option>'+
+								'<option value=13>QA & Testing</option>'+
+								'<option value=14>VFX & Lighting</option>'+
+								'<option value=15>UI & Player Experience</option>'+
+								'<option value=16>Game & Level Design</option>'+
+								'<option value=17>Concept & Illustration</option>'+
+								'<option value=18>Environment & Character</option>'+
+								'<option value=19>Full Service & Co-Development</option>'+
+							'<optgroup label="Developer">'+
+								'<option value=2>Developer</option>'+
+								'<option value=5>Virtual Reality</option>'+
+								'<option value=6>Mobile</option>'+
+								'<option value=7>Online</option>'+
+								'<option value=20>Gambling</option>'+
+								'<option value=8>Developer and Publisher</option>'+
+							'<optgroup label="Publisher">'+
+								'<option value=4>Publisher</option>'+
+								'<option value=3>Organization</option>'+
+						'</select>'+
+					'</div>'+
+				'</div>'+
+				'<div class="form-group" style="margin-bottom:8px">'+
+					'<div class="input-group">'+
+							'<label class="input-group-addon" id="basic-addon3">Lat</label>'+
+							'<input type="text" class="form-control" id="'+companyId+'-lat" value="'+companyLat+'" aria-hidden="true"/>'+
+					'</div>'+
+					'<div class="input-group">'+
+							'<label class="input-group-addon" id="basic-addon3">Lng</label>'+
+							'<input type="text" class="form-control" id="'+companyId+'-lng" value="'+companyLng+'" aria-hidden="true"/>'+
+					'</div>'+
+				'</div>'+
+				'<div class="modal-footer" style="padding: 0px; border: 0px;">'+
+					'<button type="button" class="btn btn-warning" onclick="hideCard('+companyId+')">Hide</button>'+
+					'<button type="button" class="btn btn-danger" onclick="deleteCompany('+companyId+')">Delete</button>'+
+					'<button type="button" class="btn btn-primary" onclick="updateCompany('+companyId+')">Update</button>'+
+				'</div>'+
+			'</form>';
+
+			//add the studio to the page.
+			var studioCard = document.createElement('div');
+			studioCard.id = 'studio-'+companyId;
+			studioCard.className = 'p-2 m-1 bg-light';
+			//studioCard.innerHTML = companyName;
+			studioCard.innerHTML = editForm;
+
+			var blockList = document.getElementById('blocklist');
+			blockList.appendChild(studioCard);
+			
+			document.getElementById(companyId+'-type').value = companyType;
+			document.getElementById("studio-counter").innerHTML = remainingStudios;
+
+		}
+
+		function addressLookup(companyId) {
+			var companyAddress = document.getElementById(companyId+"-address").value;
+			var addressURL =  'https://nominatim.openstreetmap.org/search?q='+ companyAddress +'&format=json&zoom=1&addressdetails=1&accept-language=en';
+			$.ajax({
+				type: "GET",
+				url: addressURL,
+				contentType: "application/json; charset=utf-8",
+				success: function(data) {
+					if (data.length > 0) {
+						document.getElementById(companyId+"-lat").value = data[0].lat;
+						document.getElementById(companyId+"-lng").value = data[0].lon;
+					} else {
+						alert('Invalid location');
+					}
+				},
+				dataType: 'json'
+			});
+		}
+
+		function hideCard(id){
+			var studioCard = document.getElementById('studio-'+id)	;
+			console.log(studioCard);
+			studioCard.remove(studioCard.selectedIndex);
+			remainingStudios--;
+			getStudio(i++);
+		}
+
+ 		//Update Company
+		function updateCompany(id) {
+			var name = document.getElementById(id+"-name").value;
+			var website = document.getElementById(id+"-website").value;
+			var address = document.getElementById(id+"-address").value;
+			var type = document.getElementById(id+"-type").value;
+			var lat = document.getElementById(id+"-lat").value;
+			var lng = document.getElementById(id	+"-lng").value;
+			var dataString = 'id='+ id + '&name='+ name + '&website=' + website + '&type=' + type + '&address=' + address + '&lat=' + lat + '&lng=' + lng + '&status=2';
+			console.log(dataString);
+			$.ajax({
+				type: "POST",
+				url: "company_edit.php",
+				data: dataString,
+				success: function() {
+					hideCard(id);
+					$('#insertSuccessModal').modal('show');
+				}
+			});
+			return false;
+		}
+
+ 		//Delete Company
+		function deleteCompany(id) {
+			var dataString = 'id='+ id;
+			$.ajax({
+				type: "POST",
+				url: "company_remove.php",
+				data: dataString,
+				success: function() {
+					hideCard(id);
+					$('#insertSuccessModal').modal('show');
+			  }
+			});
+			return false;
+		}
+
+
+/*************************/
+//		Examples
+/*************************/
+
+
+/*
+		//Click events example
+		function logEvent(ev) {
+			console.log(ev.type + ' fired on ' + ev.target, performance.now());
+		}
+
+		map.on('click', logEvent);
+		markers.on('click', logEvent);
+*/
+
+
+/*
+		//Move map to click example
+		map.on("click", function(e) {
+			map.originalEvent.preventDefault();
+		    map.setView(e.latlng, map.getZoom());
+	    });
+*/
+
+	</script>
+
+	</body>
+</html>

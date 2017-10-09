@@ -4,11 +4,14 @@ $name = str_replace("'", "&apos;", htmlspecialchars(trim($_POST['name'])));
 $website = htmlspecialchars(trim($_POST['website']));
 $address = str_replace("'", "&apos;", htmlspecialchars(trim($_POST['address'])));
 $type = (int)htmlspecialchars(trim($_POST['type']));
+if ((int)htmlspecialchars(trim($_POST['status']))) {
+	$status = (int)htmlspecialchars(trim($_POST['status']));
+}
 $lat = htmlspecialchars(trim($_POST['lat']));
 $lng = htmlspecialchars(trim($_POST['lng']));
 
 $db = new PDO('sqlite:data.sqlite');
-$sql = "UPDATE company SET name = '$name', website='$website', address ='$address', type ='$type', lat ='$lat', lng ='$lng' WHERE id = '$id';";
+$sql = "UPDATE company SET name = '$name', website='$website', address ='$address', type ='$type', status ='$status', lat ='$lat', lng ='$lng' WHERE id = '$id';";
 error_log($sql);
 $db->exec($sql);
 $db = NULL;

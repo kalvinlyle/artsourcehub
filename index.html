@@ -4,11 +4,17 @@
 		<!-- Global Site Tag (gtag.js) - Google Analytics -->
 		<script async src="https://www.googletagmanager.com/gtag/js?id=UA-106586544-1"></script>
 		<script>
-		  window.dataLayer = window.dataLayer || [];
-		  function gtag(){dataLayer.push(arguments)};
-		  gtag('js', new Date());
+			//check for developer cookie set by https://chrome.google.com/webstore/detail/developer-cookie
+			var devCookie = "ChromeDeveloperCookie=123";
+			if (document.cookie.indexOf(devCookie) == -1) {
+				window.dataLayer = window.dataLayer || [];
+				function gtag(){dataLayer.push(arguments)};
+				gtag('js', new Date());
 
-		  gtag('config', 'UA-106586544-1');
+				gtag('config', 'UA-106586544-1');
+			} else {
+				console.log('Developer mode Activated');
+			}
 		</script>
 
 		<title>Art Source Map</title>
@@ -257,7 +263,7 @@
 
 		//Create and Add Layer Groups to Map
 		var markers = L.markerClusterGroup.layerSupport({
-				disableClusteringAtZoom: 20,
+				disableClusteringAtZoom: 18,
 				iconCreateFunction: function (cluster) {
 					var markers = cluster.getAllChildMarkers();
 					var s = 0;
@@ -292,6 +298,7 @@
 			vr = L.layerGroup(),
 			mobile = L.layerGroup(),
 			online = L.layerGroup(),
+			gambling = L.layerGroup(),
 			selfpub = L.layerGroup(),
 			audio = L.layerGroup(),
 			anim = L.layerGroup(),
@@ -314,7 +321,7 @@
 
 
 		//Add Groups to the Marker Cluster
-		markers.checkIn([supplier, publisher, organization, developer, selfpub, mobile, vr, online, audio, anim, brand, loc, qa, vfx, ui, design, concept, art, codev]);
+		markers.checkIn([supplier, publisher, organization, developer, selfpub, mobile, vr, online, gambling, audio, anim, brand, loc, qa, vfx, ui, design, concept, art, codev]);
 
 		//Add groups to the Map
 		supplier.addTo(map);
@@ -325,6 +332,7 @@
 		mobile.addTo(map);
 		vr.addTo(map);
 		online.addTo(map);
+		gambling.addTo(map);
 		audio.addTo(map);
 		anim.addTo(map);
 		brand.addTo(map);
@@ -358,6 +366,7 @@
 			"Mobile Devs": mobile,
 			"Virtual Reality": vr,
 			"Online": online,
+			"Gambling": gambling,
 			"Self Publishing": selfpub
 		  },
 		  "Publisher": {
@@ -390,8 +399,16 @@
 			layer: markers,
 			initial: false,
 			collapsed: false,
-			zoom: 10,
-			marker: false
+			zoom: 17,
+			marker: {
+//				icon: new L.Icon({iconUrl:'data/custom-icon.png', iconSize: [20,20]}),
+				circle: {
+					radius: 20,
+					color: '#0a0',
+					opacity: 1
+				}
+			}
+			//marker: false
 		});
 
 		map.addControl( controlSearch );
@@ -557,7 +574,7 @@
 						case "Brand & Marketing":
 							markerGroup = brand;
 							break;
-						case "Locatization & Writing":
+						case "Localization & Writing":
 							markerGroup = loc;
 							break;
 						case "QA & Testing":
@@ -592,6 +609,9 @@
 							break;
 						case "Online":
 							markerGroup = online;
+							break;
+						case "Gambling":
+							markerGroup = gambling;
 							break;
 						case "Developer and Publisher":
 							markerGroup = selfpub;
@@ -755,7 +775,7 @@
 			var markerId = $("#markerId").val();
 			var marker = markerEdit.getLayer(markerId);
 			if (marker.options.stAdd !== "") {
-				var addressURL =  'http://nominatim.openstreetmap.org/search?q='+ marker.options.stAdd +'&format=json&zoom=1&addressdetails=1&accept-language=en';
+				var addressURL =  'https://nominatim.openstreetmap.org/search?q='+ marker.options.stAdd +'&format=json&zoom=1&addressdetails=1&accept-language=en';
 				$.ajax({
 					type: "GET",
 					url: addressURL,
@@ -785,7 +805,7 @@
 		}
 
 		function updateAddress(lat, lon) {
-			var addressURL =  'http://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json&zoom=18&addressdetails=1&accept-language=en';
+			var addressURL =  'https://nominatim.openstreetmap.org/reverse?lat='+lat+'&lon='+lon+'&format=json&zoom=18&addressdetails=1&accept-language=en';
 			$.getJSON(addressURL, function (data) {
 				var address = [];
 				var street = [];
@@ -872,6 +892,7 @@
 									'<option value=5>Virtual Reality</option>'+
 									'<option value=6>Mobile</option>'+
 									'<option value=7>Online</option>'+
+									'<option value=20>Gambling</option>'+
 									'<option value=8>Developer and Publisher</option>'+
 								'<optgroup label="Publisher">'+
 									'<option value=4>Publisher</option>'+
@@ -994,6 +1015,7 @@
 									'<option value=5>Virtual Reality</option>'+
 									'<option value=6>Mobile</option>'+
 									'<option value=7>Online</option>'+
+									'<option value=20>Gambling</option>'+
 									'<option value=8>Developer and Publisher</option>'+
 								'<optgroup label="Publisher">'+
 									'<option value=4>Publisher</option>'+
