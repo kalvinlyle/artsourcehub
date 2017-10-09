@@ -94,11 +94,11 @@
 			<span class="navbar-toggler-icon"></span>
 		</button>
 		<a class="navbar-brand" href="#">Art Source Hub</a>
-
 		<div class="collapse navbar-collapse" id="navbarTogglerDemo03">
 			<div class="mr-auto mt-2 mt-lg-0">
 				<button type="button" class="btn btn-sm btn-outline-light" data-toggle="modal" data-target="#aboutModal">About</button>
 			</div>
+			<span id="studio-counter" class="text-secondary p-2"></span>
 			<div id="findbox"></div>
 <!--
 			<form class="form-inline my-2 my-lg-0">
@@ -518,6 +518,7 @@
 		function getMarkers() {
 
 			$.getJSON("company_get.php", function (data) {
+				document.getElementById("studio-counter").innerHTML = data.length + " Studios";
 				for (var i = 0; i < data.length; i++) {
 					var companyId = data[i].id;
 					var companyName = data[i].name;
@@ -886,7 +887,7 @@
 									'<option value=16>Game & Level Design</option>'+
 									'<option value=17>Concept & Illustration</option>'+
 									'<option value=18>Environment & Character</option>'+
-									'<option value=19>Full Service & Co-Developmeny</option>'+
+									'<option value=19>Full Service & Co-Development</option>'+
 								'<optgroup label="Developer">'+
 									'<option value=2>Developer</option>'+
 									'<option value=5>Virtual Reality</option>'+
@@ -1009,7 +1010,7 @@
 									'<option value=16>Game & Level Design</option>'+
 									'<option value=17>Concept & Illustration</option>'+
 									'<option value=18>Environment & Character</option>'+
-									'<option value=19>Full Service & Co-Developmeny</option>'+
+									'<option value=19>Full Service & Co-Development</option>'+
 								'<optgroup label="Developer">'+
 									'<option value=2>Developer</option>'+
 									'<option value=5>Virtual Reality</option>'+
