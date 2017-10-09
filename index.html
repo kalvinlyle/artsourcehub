@@ -430,7 +430,7 @@
 			getMarkers();
 			if (window.location.protocol === 'https:')
 			{
-				map.locate({setView: true, maxZoom: 20});
+				map.locate({setView: true, maxZoom: 8});
 				function onLocationError(e) {
 					alert(e.message);
 				}
